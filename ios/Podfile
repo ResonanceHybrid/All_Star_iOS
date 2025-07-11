@@ -33,11 +33,10 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
-  # Add Firebase modular headers configuration
-  pod 'Firebase', :modular_headers => true
-  pod 'FirebaseCoreInternal', :modular_headers => false
-  pod 'GoogleUtilities', :modular_headers => false
-  pod 'FirebaseCore', :modular_headers => false
+  # Alternative Firebase configuration - disable modular headers for Firebase
+  pod 'Firebase/Messaging', :modular_headers => false
+  pod 'Firebase/Core', :modular_headers => false
+  pod 'FirebaseMessaging', :modular_headers => false
   
   target 'RunnerTests' do
     inherit! :search_paths
