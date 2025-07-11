@@ -1,0 +1,24 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "allstar-ems",
+                    "appId": "1:396538585892:android:fe020826dd6036241f09b1",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "allstar-ems",
+                    "configurations": {
+                        "android": "1:396538585892:android:fe020826dd6036241f09b1",
+                        "ios": "1:396538585892:ios:70fae4e613048c4d1f09b1",
+                        "macos": "1:396538585892:ios:70fae4e613048c4d1f09b1",
+                        "web": "1:396538585892:web:b90ca3eb86a241511f09b1"
+                    }
+                }
+            }
+        }
+    }
+}
