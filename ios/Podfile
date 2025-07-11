@@ -29,8 +29,7 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-  # Remove modular headers entirely
-  # use_modular_headers!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
@@ -46,6 +45,12 @@ post_install do |installer|
     # Fix for Swift bridging header issues
     target.build_configurations.each do |config|
       config.build_settings.delete('SWIFT_OBJC_BRIDGING_HEADER')
+      
+      # Disable modular headers for Firebase pods specifically
+      if target.name == 'firebase_messaging' || target.name.include?('Firebase')
+        config.build_settings['DEFINES_MODULE'] = 'NO'
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+      end
     end
   end
 end
