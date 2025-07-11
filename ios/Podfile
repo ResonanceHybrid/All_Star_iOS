@@ -42,14 +42,21 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     
-    # Fix for Swift bridging header issues
     target.build_configurations.each do |config|
       config.build_settings.delete('SWIFT_OBJC_BRIDGING_HEADER')
       
-      # Disable modular headers for Firebase pods specifically
-      if target.name == 'firebase_messaging' || target.name.include?('Firebase')
+      # Enable modules for all targets but handle Firebase specifically
+      config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+      
+      # Fix Firebase messaging modular header issue
+      if target.name == 'firebase_messaging'
         config.build_settings['DEFINES_MODULE'] = 'NO'
-        config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+      
+      # Ensure Firebase Core works with modules
+      if target.name.include?('Firebase')
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
       end
     end
   end
