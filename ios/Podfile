@@ -29,14 +29,10 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-  use_modular_headers!
+  # Remove modular headers entirely
+  # use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  
-  # Firebase configuration to fix modular headers issue
-  pod 'Firebase/Messaging', :modular_headers => false
-  pod 'Firebase/Core', :modular_headers => false
-  pod 'FirebaseMessaging', :modular_headers => false
   
   target 'RunnerTests' do
     inherit! :search_paths
