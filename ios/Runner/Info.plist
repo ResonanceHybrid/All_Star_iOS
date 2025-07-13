@@ -61,8 +61,7 @@
 	<string>UIStatusBarStyleDefault</string>
 	
 	<!-- Performance Optimizations -->
-	<key>UIApplicationExitsOnSuspend</key>
-	<false/>
+	
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
