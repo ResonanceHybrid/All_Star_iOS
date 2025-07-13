@@ -45,5 +45,28 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Privacy Usage Descriptions -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>All Star Learning needs access to your microphone to record audio for interactive learning activities and pronunciation practice.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>All Star Learning needs access to your camera to scan learning materials and enable visual learning features.</string>
+	
+	<!-- Animation Optimization Settings -->
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIStatusBarHidden</key>
+	<false/>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	
+	<!-- Performance Optimizations -->
+	<key>UIApplicationExitsOnSuspend</key>
+	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
