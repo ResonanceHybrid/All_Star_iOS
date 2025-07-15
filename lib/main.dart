@@ -28,9 +28,7 @@ Future<void> main() async {
     ),
   );
 
-  await LocalStorageMethods.init();
-  await setUpLocator();
-
+  // Initialize Firebase first (required for some storage operations)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -38,6 +36,16 @@ Future<void> main() async {
   } catch (e) {
     log('Firebase initialization error: $e');
   }
+
+  // Initialize local storage after Firebase
+  try {
+    await LocalStorageMethods.init();
+  } catch (e) {
+    log('LocalStorage initialization error: $e');
+    // Continue without local storage if it fails
+  }
+
+  await setUpLocator();
 
   FcmHelper.initFcm();
 
