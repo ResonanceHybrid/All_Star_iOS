@@ -18,9 +18,14 @@ class LocalStorageMethods {
   static const String _schoolDetailsKey = 'schoolDetails';
 
   /// init get storage services
-
   static init() async {
-    await GetStorage.init();
+    try {
+      await GetStorage.init();
+    } catch (e) {
+      print('GetStorage initialization failed: $e');
+      // You might want to initialize a fallback storage method here
+      rethrow;
+    }
   }
 
   /// set theme current type as light theme
