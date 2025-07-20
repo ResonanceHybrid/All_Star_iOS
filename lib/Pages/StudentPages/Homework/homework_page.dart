@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:all_star_learning/Models/base_response_model.dart';
 import 'package:all_star_learning/Models/student_homework_model.dart';
+import 'package:all_star_learning/Pages/TeacherPages/TeacherHome/cubit/home_container_cubit.dart';
 import 'package:all_star_learning/Resources/student_api_methods.dart';
 import 'package:all_star_learning/config/theme/app_static_colors.dart';
 import 'package:all_star_learning/routes/app_pages.dart';
 import 'package:all_star_learning/utils/custom_methods.dart';
 import 'package:all_star_learning/widgets/student/container_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -53,6 +55,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   @override
   void initState() {
     super.initState();
+    BlocProvider.of<HomeContainerCubit>(context).getUserDetails();
     getHomework();
   }
 
@@ -317,263 +320,269 @@ class StudentHomeworkListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.symmetric(
-        horizontal: 10.w,
-        vertical: 10.h,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.r),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey[300]!,
-            blurRadius: 8.r,
-            spreadRadius: 2.r,
-            offset: const Offset(4, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12.w,
-              vertical: 8.h,
+    return BlocBuilder<HomeContainerCubit, HomeContainerState>(
+        builder: (context, state) {
+      bool isHomeworkImageEnabled =
+          state.userDetails?["data"]["is_homework_image_enabled"] ?? false;
+      return Container(
+        clipBehavior: Clip.antiAlias,
+        margin: EdgeInsets.symmetric(
+          horizontal: 10.w,
+          vertical: 10.h,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.r),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey[300]!,
+              blurRadius: 8.r,
+              spreadRadius: 2.r,
+              offset: const Offset(4, 3),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: 0.55.sw,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 0.8.sw,
-                            child: Text(
-                              "${item.subjectName} ",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textLightDarkColorGrey,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 12.w,
+                vertical: 8.h,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 0.55.sw,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 0.8.sw,
+                              child: Text(
+                                "${item.subjectName} ",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textLightDarkColorGrey,
+                                ),
                               ),
                             ),
+                            SizedBox(
+                              height: 4.h,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        "Due on: ${item.homeworkSubmissionDate.toString().split(' ').first}",
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textLightDarkColorGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 12.w,
+                  ),
+                  Center(
+                    child: Text(
+                      item.description ?? "N/A",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainColor.withOpacity(0.8),
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 8.w,
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      Get.toNamed(AppPages.studenthomeworkview, arguments: {
+                        "homeworkFiles": item.homeworkFiles,
+                        "description": item.description,
+                      });
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(top: 12.h),
+                      height: 50.h,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            top: BorderSide(color: Colors.grey[400]!),
+                            right: BorderSide(color: Colors.grey[400]!),
+                          )),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.remove_red_eye_rounded,
+                            size: 16.r,
                           ),
                           SizedBox(
-                            height: 4.h,
+                            width: 4.w,
+                          ),
+                          Text(
+                            "View",
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textLightDarkColorGrey,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Text(
-                      "Due on: ${item.homeworkSubmissionDate.toString().split(' ').first}",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.textLightDarkColorGrey,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 12.w,
-                ),
-                Center(
-                  child: Text(
-                    item.description ?? "N/A",
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainColor.withOpacity(0.8),
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(
-                  height: 8.w,
+                if (isHomeworkImageEnabled)
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        uploadModel(context, item, []);
+                      },
+                      child: Container(
+                        clipBehavior: Clip.antiAlias,
+                        margin: EdgeInsets.only(top: 12.h),
+                        height: 50.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            left: BorderSide(color: Colors.grey[400]!),
+                            right: BorderSide(color: Colors.grey[400]!),
+                            top: BorderSide(color: Colors.grey[400]!),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.upload_file_rounded,
+                              size: 16.r,
+                            ),
+                            SizedBox(
+                              width: 4.w,
+                            ),
+                            Text(
+                              "Upload",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.textLightDarkColorGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      Get.toNamed(AppPages.studentHomeworkDownload, arguments: {
+                        "homeworkFiles": item.homeworkFiles,
+                      });
+                    },
+                    child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      margin: EdgeInsets.only(top: 12.h),
+                      height: 50.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          left: BorderSide(color: Colors.grey[400]!),
+                          right: BorderSide(color: Colors.grey[400]!),
+                          top: BorderSide(color: Colors.grey[400]!),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.download_rounded,
+                            size: 16.r,
+                          ),
+                          SizedBox(
+                            width: 4.w,
+                          ),
+                          Text(
+                            "Download",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textLightDarkColorGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    Get.toNamed(AppPages.studenthomeworkview, arguments: {
-                      "homeworkFiles": item.homeworkFiles,
-                      "description": item.description,
-                    });
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(top: 12.h),
-                    height: 50.h,
-                    decoration: BoxDecoration(
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      Get.toNamed(AppPages.studentSubmittedHomework,
+                          arguments: item.id);
+                    },
+                    child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      margin: EdgeInsets.only(top: 12.h),
+                      height: 50.h,
+                      decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border(
                           top: BorderSide(color: Colors.grey[400]!),
-                          right: BorderSide(color: Colors.grey[400]!),
-                        )),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.remove_red_eye_rounded,
-                          size: 16.r,
                         ),
-                        SizedBox(
-                          width: 4.w,
-                        ),
-                        Text(
-                          "View",
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.textLightDarkColorGrey,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check_circle_rounded,
+                            size: 16.r,
+                            color: Colors.green,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    uploadModel(context, item, []);
-                  },
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    margin: EdgeInsets.only(top: 12.h),
-                    height: 50.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        left: BorderSide(color: Colors.grey[400]!),
-                        right: BorderSide(color: Colors.grey[400]!),
-                        top: BorderSide(color: Colors.grey[400]!),
+                          SizedBox(
+                            width: 4.w,
+                          ),
+                          Text(
+                            "Submitted",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textLightDarkColorGrey,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.upload_file_rounded,
-                          size: 16.r,
-                        ),
-                        SizedBox(
-                          width: 4.w,
-                        ),
-                        Text(
-                          "Upload",
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.textLightDarkColorGrey,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    Get.toNamed(AppPages.studentHomeworkDownload, arguments: {
-                      "homeworkFiles": item.homeworkFiles,
-                    });
-                  },
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    margin: EdgeInsets.only(top: 12.h),
-                    height: 50.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        left: BorderSide(color: Colors.grey[400]!),
-                        right: BorderSide(color: Colors.grey[400]!),
-                        top: BorderSide(color: Colors.grey[400]!),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.download_rounded,
-                          size: 16.r,
-                        ),
-                        SizedBox(
-                          width: 4.w,
-                        ),
-                        Text(
-                          "Download",
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.textLightDarkColorGrey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    Get.toNamed(AppPages.studentSubmittedHomework,
-                        arguments: item.id);
-                  },
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    margin: EdgeInsets.only(top: 12.h),
-                    height: 50.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        top: BorderSide(color: Colors.grey[400]!),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.check_circle_rounded,
-                          size: 16.r,
-                          color: Colors.green,
-                        ),
-                        SizedBox(
-                          width: 4.w,
-                        ),
-                        Text(
-                          "Submitted",
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.textLightDarkColorGrey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            ],
-          )
-        ],
-      ),
-    );
+                )
+              ],
+            )
+          ],
+        ),
+      );
+    });
   }
 }
