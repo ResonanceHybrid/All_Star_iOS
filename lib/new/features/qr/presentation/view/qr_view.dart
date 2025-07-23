@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class QrView extends StatefulWidget {
   const QrView({super.key});
@@ -15,36 +16,116 @@ class QrView extends StatefulWidget {
 
 class _QrViewState extends State<QrView> {
   Barcode? _barcode;
-
   bool _isScanning = false;
-
-  void _handleBarcode(BarcodeCapture barcodes) async {
-    if (!_isScanning) return;
-    if (mounted) {
-      setState(() {
-        _barcode = barcodes.barcodes.firstOrNull;
-      });
-    }
-
-    await BlocProvider.of<QrCubit>(context).scanQr(
-        userID: _barcode?.rawValue ?? "",
-        onSuccess: () {
-          setState(() {
-            _isScanning = false;
-          });
-          // Get.back();
-        },
-        onError: ((p0) {
-          _isScanning = false;
-        }));
-  }
+  bool _hasPermission = false;
+  MobileScannerController? _controller;
 
   @override
   void initState() {
     super.initState();
+    _initializeCamera();
     BlocProvider.of<QrCubit>(context).getScanTypes(
       report: false,
     );
+  }
+
+  Future<void> _initializeCamera() async {
+    // Request camera permission explicitly
+    final permission = await Permission.camera.request();
+
+    if (permission.isGranted) {
+      setState(() {
+        _hasPermission = true;
+        _controller = MobileScannerController(
+          detectionSpeed: DetectionSpeed.noDuplicates,
+        );
+      });
+    } else {
+      setState(() {
+        _hasPermission = false;
+      });
+
+      if (mounted) {
+        _showPermissionDialog();
+      }
+    }
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Camera Permission Required'),
+          content: const Text(
+            'This app needs camera access to scan QR codes. Please grant camera permission in Settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                openAppSettings();
+              },
+              child: const Text('Settings'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleBarcode(BarcodeCapture barcodes) async {
+    if (!_isScanning) return;
+
+    final barcode = barcodes.barcodes.firstOrNull;
+    if (barcode == null) return;
+
+    if (mounted) {
+      setState(() {
+        _barcode = barcode;
+      });
+
+      await BlocProvider.of<QrCubit>(context).scanQr(
+        userID: barcode.rawValue ?? "",
+        onSuccess: () {
+          setState(() {
+            _isScanning = false;
+          });
+        },
+        onError: (error) {
+          setState(() {
+            _isScanning = false;
+          });
+        },
+      );
+    }
+  }
+
+  void _toggleScanning() {
+    if (!_hasPermission) {
+      _initializeCamera();
+      return;
+    }
+
+    setState(() {
+      _isScanning = !_isScanning;
+    });
+
+    if (_isScanning) {
+      _controller?.start();
+    } else {
+      _controller?.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,11 +151,11 @@ class _QrViewState extends State<QrView> {
                         Text(
                           "Select Type",
                           style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                         SizedBox(height: 12.h),
                         DropdownButtonFormField(
@@ -85,8 +166,8 @@ class _QrViewState extends State<QrView> {
                             border: const OutlineInputBorder(),
                           ),
                           value: state.selectedType,
-                          items: state.scanTypesEntity!
-                              .map(
+                          items: state.scanTypesEntity
+                              ?.map(
                                 (e) => DropdownMenuItem(
                                   value: e.slug,
                                   child: Text(e.name ?? "N/A"),
@@ -99,6 +180,7 @@ class _QrViewState extends State<QrView> {
                               _isScanning = false;
                               _barcode = null;
                             });
+                            _controller?.stop();
                           },
                         ),
                       ],
@@ -127,9 +209,33 @@ class _QrViewState extends State<QrView> {
                         color: Colors.black,
                         width: 1.sw,
                         height: 0.4.sh,
-                        child: MobileScanner(
-                          onDetect: _handleBarcode,
-                        ),
+                        child: _hasPermission && _controller != null
+                            ? MobileScanner(
+                                controller: _controller,
+                                onDetect: _handleBarcode,
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.camera_alt_outlined,
+                                      size: 64,
+                                      color: Colors.white54,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      _hasPermission
+                                          ? 'Loading camera...'
+                                          : 'Camera permission required',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                       ),
                     ),
                     // Start/Stop Scan Button
@@ -144,26 +250,23 @@ class _QrViewState extends State<QrView> {
                           return;
                         }
 
-                        if (_isScanning) {
-                          setState(() {
-                            _isScanning = false;
-                          });
-                        } else {
-                          setState(() {
-                            _isScanning = true;
-                          });
-                        }
+                        _toggleScanning();
                       },
                       style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 16.sp,
-                            horizontal: 32.sp,
-                          ),
-                          backgroundColor: _isScanning
-                              ? Theme.of(context).primaryColor
-                              : Colors.green),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 16.sp,
+                          horizontal: 32.sp,
+                        ),
+                        backgroundColor: _isScanning
+                            ? Theme.of(context).primaryColor
+                            : Colors.green,
+                      ),
                       child: Text(
-                        _isScanning ? "Stop Scanning" : "Start Scanning",
+                        !_hasPermission
+                            ? "Grant Camera Permission"
+                            : (_isScanning
+                                ? "Stop Scanning"
+                                : "Start Scanning"),
                         style: TextStyle(
                           fontSize: 16.sp,
                           color: Colors.white,
@@ -197,7 +300,6 @@ class _QrViewState extends State<QrView> {
                         )
                       : const SizedBox.shrink(),
                   (!state.isLoading && state.error != null)
-                      // ! TODO: Check if error is not null
                       ? Text(
                           "Error: ${state.error?.message ?? "Not Assigned"}",
                           style: TextStyle(
@@ -233,8 +335,6 @@ class _QrViewState extends State<QrView> {
                           ),
                         ],
                       ),
-
-                      //  Student Details
                       Row(
                         children: [
                           Text(
