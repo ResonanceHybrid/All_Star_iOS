@@ -51,6 +51,8 @@
 	<string>All Star Learning needs access to your microphone to record audio for interactive learning activities and pronunciation practice.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>All Star Learning needs access to your camera to scan learning materials and enable visual learning features.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to select profile pictures</string>
 	
 	<!-- Animation Optimization Settings -->
 	<key>UIViewControllerBasedStatusBarAppearance</key>

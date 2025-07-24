@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:all_star_learning/Utils/custom_methods.dart';
 import 'package:all_star_learning/new/features/qr/presentation/cubit/qr_cubit.dart';
 import 'package:all_star_learning/new/features/qr/presentation/cubit/qr_state.dart';
@@ -18,6 +19,7 @@ class _QrViewState extends State<QrView> {
   Barcode? _barcode;
   bool _isScanning = false;
   bool _hasPermission = false;
+  bool _isInitializing = false;
   MobileScannerController? _controller;
 
   @override
@@ -29,24 +31,62 @@ class _QrViewState extends State<QrView> {
     );
   }
 
+  Future<bool> _requestCameraPermission() async {
+    try {
+      final permission = Permission.camera;
+
+      if (await permission.isGranted) {
+        return true;
+      }
+
+      final result = await permission.request();
+      return result == PermissionStatus.granted;
+    } catch (e) {
+      log("Error requesting camera permission: $e");
+      return false;
+    }
+  }
+
   Future<void> _initializeCamera() async {
-    // Request camera permission explicitly
-    final permission = await Permission.camera.request();
+    if (_isInitializing) return;
 
-    if (permission.isGranted) {
-      setState(() {
-        _hasPermission = true;
-        _controller = MobileScannerController(
-          detectionSpeed: DetectionSpeed.noDuplicates,
-        );
-      });
-    } else {
-      setState(() {
-        _hasPermission = false;
-      });
+    setState(() {
+      _isInitializing = true;
+    });
 
+    try {
+      final hasPermission = await _requestCameraPermission();
+
+      if (hasPermission) {
+        setState(() {
+          _hasPermission = true;
+          _controller = MobileScannerController(
+            detectionSpeed: DetectionSpeed.noDuplicates,
+          );
+        });
+      } else {
+        setState(() {
+          _hasPermission = false;
+        });
+
+        if (mounted) {
+          _showPermissionDialog();
+        }
+      }
+    } catch (e) {
+      log("Error initializing camera: $e");
       if (mounted) {
-        _showPermissionDialog();
+        CustomMethods().showSnackBar(
+          context,
+          "Failed to initialize camera. Please try again.",
+          Colors.red,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+        });
       }
     }
   }
@@ -54,23 +94,34 @@ class _QrViewState extends State<QrView> {
   void _showPermissionDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Camera Permission Required'),
           content: const Text(
-            'This app needs camera access to scan QR codes. Please grant camera permission in Settings.',
+            'This app needs camera access to scan QR codes. Please grant camera permission to continue.',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Optionally navigate back if camera is essential
+                // Navigator.of(context).pop();
+              },
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                openAppSettings();
+                await openAppSettings();
+                // Re-check permission when user returns from settings
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (mounted) {
+                    _initializeCamera();
+                  }
+                });
               },
-              child: const Text('Settings'),
+              child: const Text('Open Settings'),
             ),
           ],
         );
@@ -79,29 +130,50 @@ class _QrViewState extends State<QrView> {
   }
 
   void _handleBarcode(BarcodeCapture barcodes) async {
-    if (!_isScanning) return;
+    if (!_isScanning || !_hasPermission) return;
 
     final barcode = barcodes.barcodes.firstOrNull;
-    if (barcode == null) return;
+    if (barcode == null || barcode.rawValue == null) return;
 
     if (mounted) {
       setState(() {
         _barcode = barcode;
       });
 
-      await BlocProvider.of<QrCubit>(context).scanQr(
-        userID: barcode.rawValue ?? "",
-        onSuccess: () {
+      try {
+        await BlocProvider.of<QrCubit>(context).scanQr(
+          userID: barcode.rawValue!,
+          onSuccess: () {
+            if (mounted) {
+              setState(() {
+                _isScanning = false;
+              });
+              _controller?.stop();
+            }
+          },
+          onError: (error) {
+            if (mounted) {
+              setState(() {
+                _isScanning = false;
+              });
+              _controller?.stop();
+            }
+          },
+        );
+      } catch (e) {
+        log("Error processing QR scan: $e");
+        if (mounted) {
           setState(() {
             _isScanning = false;
           });
-        },
-        onError: (error) {
-          setState(() {
-            _isScanning = false;
-          });
-        },
-      );
+          _controller?.stop();
+          CustomMethods().showSnackBar(
+            context,
+            "Failed to process QR code. Please try again.",
+            Colors.red,
+          );
+        }
+      }
     }
   }
 
@@ -111,14 +183,37 @@ class _QrViewState extends State<QrView> {
       return;
     }
 
+    if (_controller == null) {
+      CustomMethods().showSnackBar(
+        context,
+        "Camera not ready. Please wait or restart the app.",
+        Colors.red,
+      );
+      return;
+    }
+
     setState(() {
       _isScanning = !_isScanning;
     });
 
-    if (_isScanning) {
-      _controller?.start();
-    } else {
-      _controller?.stop();
+    try {
+      if (_isScanning) {
+        _controller?.start();
+      } else {
+        _controller?.stop();
+      }
+    } catch (e) {
+      log("Error toggling scanner: $e");
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+        CustomMethods().showSnackBar(
+          context,
+          "Camera error. Please restart the app.",
+          Colors.red,
+        );
+      }
     }
   }
 
@@ -134,7 +229,7 @@ class _QrViewState extends State<QrView> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Qr Code Attendance'),
+            title: const Text('QR Code Attendance'),
           ),
           body: Column(
             children: [
@@ -209,33 +304,7 @@ class _QrViewState extends State<QrView> {
                         color: Colors.black,
                         width: 1.sw,
                         height: 0.4.sh,
-                        child: _hasPermission && _controller != null
-                            ? MobileScanner(
-                                controller: _controller,
-                                onDetect: _handleBarcode,
-                              )
-                            : Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.camera_alt_outlined,
-                                      size: 64,
-                                      color: Colors.white54,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      _hasPermission
-                                          ? 'Loading camera...'
-                                          : 'Camera permission required',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                        child: _buildCameraPreview(),
                       ),
                     ),
                     // Start/Stop Scan Button
@@ -261,57 +330,28 @@ class _QrViewState extends State<QrView> {
                             ? Theme.of(context).primaryColor
                             : Colors.green,
                       ),
-                      child: Text(
-                        !_hasPermission
-                            ? "Grant Camera Permission"
-                            : (_isScanning
-                                ? "Stop Scanning"
-                                : "Start Scanning"),
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _isInitializing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              _getButtonText(),
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ],
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  !(!state.isLoading && state.error != null)
-                      ? Text(
-                          "Scan Result",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                  SizedBox(width: 16.sp),
-                  (!state.isLoading && state.scanSuccess)
-                      ? Text(
-                          "Success",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                  (!state.isLoading && state.error != null)
-                      ? Text(
-                          "Error: ${state.error?.message ?? "Not Assigned"}",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ],
-              ),
-              // Scan Result
+              _buildScanResult(state),
+              // Scan Result Details
               if (_barcode != null && state.scanStudentResponseEntity != null)
                 Padding(
                   padding: EdgeInsets.all(12.sp),
@@ -327,10 +367,12 @@ class _QrViewState extends State<QrView> {
                             ),
                           ),
                           SizedBox(width: 8.sp),
-                          Text(
-                            "${state.scanStudentResponseEntity?.classEntity?.name ?? "N/A"} - ${state.scanStudentResponseEntity?.section?.name ?? "N/A"} - ${state.scanStudentResponseEntity?.rollNo ?? "N/A"}",
-                            style: TextStyle(
-                              fontSize: 14.sp,
+                          Expanded(
+                            child: Text(
+                              "${state.scanStudentResponseEntity?.classEntity?.name ?? "N/A"} - ${state.scanStudentResponseEntity?.section?.name ?? "N/A"} - ${state.scanStudentResponseEntity?.rollNo ?? "N/A"}",
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                              ),
                             ),
                           ),
                         ],
@@ -361,5 +403,130 @@ class _QrViewState extends State<QrView> {
         );
       },
     );
+  }
+
+  Widget _buildCameraPreview() {
+    if (_isInitializing) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.white),
+            SizedBox(height: 16),
+            Text(
+              'Initializing camera...',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!_hasPermission) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.camera_alt_outlined,
+              size: 64,
+              color: Colors.white54,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Camera permission required',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _initializeCamera,
+              child: const Text('Grant Permission'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_controller == null) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.white54,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Camera failed to initialize',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return MobileScanner(
+      controller: _controller,
+      onDetect: _handleBarcode,
+    );
+  }
+
+  Widget _buildScanResult(QrState state) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (!state.isLoading && state.error == null)
+          Text(
+            "Scan Result",
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        SizedBox(width: 16.sp),
+        if (!state.isLoading && state.scanSuccess)
+          Text(
+            "Success",
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        if (!state.isLoading && state.error != null)
+          Expanded(
+            child: Text(
+              "Error: ${state.error?.message ?? "Not Assigned"}",
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _getButtonText() {
+    if (!_hasPermission) {
+      return "Grant Camera Permission";
+    }
+    if (_controller == null) {
+      return "Camera Error - Restart App";
+    }
+    return _isScanning ? "Stop Scanning" : "Start Scanning";
   }
 }

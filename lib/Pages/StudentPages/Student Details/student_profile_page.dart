@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'package:all_star_learning/Models/base_response_model.dart';
 import 'package:all_star_learning/Resources/student_api_methods.dart';
 import 'package:all_star_learning/Utils/local_storage.dart';
 import 'package:all_star_learning/config/theme/app_static_colors.dart';
 import 'package:all_star_learning/utils/custom_methods.dart';
 import 'package:all_star_learning/widgets/student/container_widget.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class StudentProfilePage extends StatefulWidget {
   final bool fromNav;
@@ -44,7 +44,60 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
     setState(() => isLoading = false);
   }
 
+  Future<bool> _requestPermission(Permission permission) async {
+    if (await permission.isGranted) {
+      return true;
+    }
+
+    final result = await permission.request();
+    return result == PermissionStatus.granted;
+  }
+
+  Future<void> _pickImageFromSource(ImageSource source) async {
+    try {
+      // Check and request permission
+      Permission permission =
+          source == ImageSource.camera ? Permission.camera : Permission.photos;
+
+      if (!await _requestPermission(permission)) {
+        if (mounted) {
+          cm.showSnackBar(
+              context,
+              "Permission denied to access ${source == ImageSource.camera ? 'camera' : 'gallery'}",
+              Colors.red);
+        }
+        return;
+      }
+
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+        if (mounted) {
+          Navigator.pop(context);
+          uploadImage();
+        }
+      }
+    } catch (e) {
+      log("Error picking image: $e");
+      if (mounted) {
+        Navigator.pop(context);
+        cm.showSnackBar(
+            context, "Failed to pick image. Please try again.", Colors.red);
+      }
+    }
+  }
+
   Future<void> uploadImage() async {
+    if (_image == null) return;
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -59,24 +112,37 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
               Navigator.pop(context);
               showDialog(
                 context: context,
+                barrierDismissible: false,
                 builder: (_) =>
                     const Center(child: CircularProgressIndicator()),
               );
-              BaseResponse data =
-                  await StudentApiMethods.uploadProfileImage(_image!);
-              if (data is SuccessResponse) {
-                var userdata = LocalStorageMethods.getUserDetails();
-                userdata["data"]["image"] = data.data["data"]["image"] ?? "";
-                LocalStorageMethods.saveUserDetails(userdata);
-                if (mounted) {
-                  Navigator.pop(context);
-                  getProfileDetails();
+
+              try {
+                BaseResponse data =
+                    await StudentApiMethods.uploadProfileImage(_image!);
+                if (data is SuccessResponse) {
+                  var userdata = LocalStorageMethods.getUserDetails();
+                  userdata["data"]["image"] = data.data["data"]["image"] ?? "";
+                  LocalStorageMethods.saveUserDetails(userdata);
+                  if (mounted) {
+                    Navigator.pop(context);
+                    getProfileDetails();
+                    cm.showSnackBar(context,
+                        "Profile image updated successfully", Colors.green);
+                  }
+                } else if (data is ErrorResponse) {
+                  if (mounted) {
+                    Navigator.pop(context);
+                    cm.showSnackBar(context,
+                        data.message ?? "Something went wrong", Colors.red);
+                  }
                 }
-              } else if (data is ErrorResponse) {
+              } catch (e) {
+                log("Error uploading image: $e");
                 if (mounted) {
                   Navigator.pop(context);
                   cm.showSnackBar(context,
-                      data.message ?? "Something went wrong", Colors.red);
+                      "Failed to upload image. Please try again.", Colors.red);
                 }
               }
             },
@@ -84,6 +150,70 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showImagePickerDialog() async {
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogBackgroundColor: Theme.of(context).canvasColor,
+          ),
+          child: Dialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 45,
+                  padding: const EdgeInsets.all(5),
+                  decoration: const BoxDecoration(
+                    color: AppColors.mainColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(5),
+                      topRight: Radius.circular(5),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Change Profile Image",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextButton.icon(
+                  onPressed: () async {
+                    await _pickImageFromSource(ImageSource.camera);
+                  },
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text("Camera"),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await _pickImageFromSource(ImageSource.gallery);
+                  },
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text("Gallery"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -117,12 +247,14 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                         children: [
                           Text(
                             userDetails["name"] ?? "",
-                            style:
-                                Theme.of(context).textTheme.titleLarge!.copyWith(
-                                      color: AppColors.mainColor,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge!
+                                .copyWith(
+                                  color: AppColors.mainColor,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ],
                       ),
@@ -133,78 +265,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
               Align(
                 alignment: Alignment.topCenter,
                 child: GestureDetector(
-                  onTap: () async {
-                    await showDialog(
-                      context: context,
-                      builder: (_) {
-                        return StatefulBuilder(builder: (context, setState) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              dialogBackgroundColor:
-                                  Theme.of(context).canvasColor,
-                            ),
-                            child: Dialog(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(
-                                    height: 45,
-                                    child: ContainerWidget(
-                                      padding: 5,
-                                      color: Colors.white,
-                                      radius: 5,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Change Profile Image",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      var data = await picker.pickImage(
-                                          source: ImageSource.camera);
-                                      if (data != null) {
-                                        _image = File(data.path);
-                                        if (mounted) {
-                                          Navigator.pop(context);
-                                          uploadImage();
-                                        }
-                                      }
-                                    },
-                                    child: const Text("Camera"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      var data = await picker.pickImage(
-                                          source: ImageSource.gallery);
-                                      if (data != null) {
-                                        _image = File(data.path);
-                                        if (mounted) {
-                                          Navigator.pop(context);
-                                          uploadImage();
-                                        }
-                                      }
-                                    },
-                                    child: const Text("Gallery"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        });
-                      },
-                    );
-                  },
+                  onTap: _showImagePickerDialog,
                   child: _image != null
                       ? CircleAvatar(
                           radius: 45,
@@ -224,6 +285,10 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                                         "image"] ??
                                     "https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png"),
                                 radius: 40,
+                                onBackgroundImageError:
+                                    (exception, stackTrace) {
+                                  log("Error loading profile image: $exception");
+                                },
                               ),
                             ),
                             Positioned(
@@ -237,8 +302,11 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Center(
-                                  child: Icon(Icons.edit,
-                                      color: AppColors.mainColor, size: 15),
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: AppColors.mainColor,
+                                    size: 15,
+                                  ),
                                 ),
                               ),
                             ),
@@ -301,9 +369,15 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildRowWidget("Guardian Name", userDetails["parent_details"]?["guardian_name"] ?? ""),
+                      _buildRowWidget(
+                          "Guardian Name",
+                          userDetails["parent_details"]?["guardian_name"] ??
+                              ""),
                       const SizedBox(height: 20),
-                      _buildRowWidget("Guardian Phone", userDetails["parent_details"]?["guardian_phone"] ?? ""),
+                      _buildRowWidget(
+                          "Guardian Phone",
+                          userDetails["parent_details"]?["guardian_phone"] ??
+                              ""),
                       const SizedBox(height: 20),
                     ],
                   ),
