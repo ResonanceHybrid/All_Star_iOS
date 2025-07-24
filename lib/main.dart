@@ -5,6 +5,9 @@ import 'package:all_star_learning/new/core/bloc/bloc_providers.dart';
 import 'package:all_star_learning/new/core/dependency_injection/dependency_injection.dart';
 import 'package:all_star_learning/routes/app_pages.dart';
 import 'package:all_star_learning/utils/local_storage.dart';
+import 'package:all_star_learning/Models/base_response_model.dart';
+import 'package:all_star_learning/Models/school_list_model.dart';
+import 'package:all_star_learning/Resources/initial_api_method.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +43,9 @@ Future<void> main() async {
   // Initialize local storage after Firebase
   try {
     await LocalStorageMethods.init();
+
+    // Auto-set Sanjeewani School from API if no school is selected
+    await _setSanjeewaniSchoolFromAPI();
   } catch (e) {
     log('LocalStorage initialization error: $e');
     // Continue without local storage if it fails
@@ -55,6 +61,66 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   );
+}
+
+// Function to fetch and set Sanjeewani School from API
+Future<void> _setSanjeewaniSchoolFromAPI() async {
+  try {
+    final schoolDetails = LocalStorageMethods.getSchoolDetails();
+
+    // If no school is selected, fetch and set Sanjeewani School
+    if (schoolDetails == null ||
+        schoolDetails["domainName"] == null ||
+        schoolDetails["domainName"] == "" ||
+        schoolDetails["name"] == null ||
+        schoolDetails["name"] == "") {
+      log('No school selected, fetching Sanjeewani School from API...');
+
+      // Search for Sanjeewani School using the API
+      BaseResponse response = await InitialApi.getSchoolList(
+          schoolName: "Sanjeewani", // Search for Sanjeewani School
+          page: 1);
+
+      if (response is SuccessResponse) {
+        SchoolListModel schoolListModel = response.data as SchoolListModel;
+
+        if (schoolListModel.data != null && schoolListModel.data!.isNotEmpty) {
+          // Find Sanjeewani School in the results
+          School? sanjeewaniSchool;
+
+          for (School school in schoolListModel.data!) {
+            // Check if school name contains "Sanjeewani" (case insensitive)
+            if (school.name != null &&
+                school.name!.toLowerCase().contains("sanjeewani")) {
+              sanjeewaniSchool = school;
+              break;
+            }
+          }
+
+          if (sanjeewaniSchool != null) {
+            // Save Sanjeewani School details from API response
+            await LocalStorageMethods.saveSchoolDetails(
+              sanjeewaniSchool.domainName ?? "",
+              sanjeewaniSchool.logo ?? "",
+              sanjeewaniSchool.name ?? "",
+            );
+
+            log('Sanjeewani School set successfully from API: ${sanjeewaniSchool.name}');
+          } else {
+            log('Sanjeewani School not found in API response');
+          }
+        } else {
+          log('No schools found in API response');
+        }
+      } else {
+        log('API call failed: ${response.message}');
+      }
+    } else {
+      log('School already selected: ${schoolDetails["name"]}');
+    }
+  } catch (e) {
+    log('Error setting Sanjeewani School from API: $e');
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -112,23 +178,16 @@ class _MyAppState extends State<MyApp> {
           title: "AllStar EMS",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
-
-          // Optimize default transitions to reduce animation conflicts
-          // defaultTransition: Transition.fade,
-          // transitionDuration: const Duration(milliseconds: 200),
-
           builder: (context, widget) {
             bool themeIsLight = LocalStorageMethods.getThemeIsLight();
             return Theme(
               data: MyTheme.getThemeData(isLight: themeIsLight).copyWith(
-                // Reduce animation-related conflicts
                 pageTransitionsTheme: const PageTransitionsTheme(
                   builders: {
                     TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
                     TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
                   },
                 ),
-                // Reduce splash effects that might cause animation conflicts
                 splashFactory: InkSplash.splashFactory,
                 materialTapTargetSize: MaterialTapTargetSize.padded,
               ),
@@ -139,17 +198,12 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           },
-
-          // Simplified route logic for better performance
           initialRoute: _getInitialRoute(),
           getPages: AppPages.routes,
           locale: LocalStorageMethods.getCurrentLocal(),
           translations: LocalizationService.getInstance(),
-
-          // Add these to improve navigation performance
           enableLog: false,
           logWriterCallback: (text, {isError = false}) {
-            // Only log errors in production
             if (isError) {
               log(text);
             }
@@ -163,7 +217,7 @@ class _MyAppState extends State<MyApp> {
     final schoolDetails = LocalStorageMethods.getSchoolDetails();
     final userDetails = LocalStorageMethods.getUserDetails();
 
-    // Check school details
+    // Check if school is set (should be Sanjeewani now)
     if (schoolDetails == null || schoolDetails["logo"] == "") {
       return AppPages.selectSchool;
     }
