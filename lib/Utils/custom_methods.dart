@@ -54,46 +54,46 @@ class CustomMethods {
     );
   }
 
-  getAppbarWithDrawerAndAction(context1, {String? title, bool showLogo = false, bool showBackground = true}) {
+  getAppbarWithDrawerAndAction(context1,
+      {String? title, bool showLogo = false, bool showBackground = true}) {
     final bool isLight = Theme.of(context1).brightness == Brightness.light;
     return AppBar(
       // iconTheme: IconThemeData(
-      //   color: isLight && !showBackground 
-      //     ? Colors.black 
+      //   color: isLight && !showBackground
+      //     ? Colors.black
       //     : Colors.white,
       // ),
-      leading: showLogo ? Padding(
-        padding: const EdgeInsets.only(left: 8.0),
-        child: LocalStorageMethods.getSchoolDetails()?["logo"] == ""  
-          ? null 
-          : Image.network(
-              LocalStorageMethods.getSchoolDetails()?["logo"],
-              height: 64,
-              width: 64,
-              fit: BoxFit.scaleDown,
-            ),
-      ) : null,
+      leading: showLogo
+          ? Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: LocalStorageMethods.getSchoolDetails()?["logo"] == ""
+                  ? null
+                  : Image.network(
+                      LocalStorageMethods.getSchoolDetails()?["logo"],
+                      height: 64,
+                      width: 64,
+                      fit: BoxFit.scaleDown,
+                    ),
+            )
+          : null,
       title: Text(
-        title ?? (showLogo ? LocalStorageMethods.getSchoolDetails()!["name"] : ""),
+        title ??
+            (showLogo ? LocalStorageMethods.getSchoolDetails()!["name"] : ""),
         style: Theme.of(context1).textTheme.headlineSmall!.copyWith(
-          color: isLight && !showBackground
-            ? Colors.black 
-            : Colors.white,
-        ),
+              color: isLight && !showBackground ? Colors.black : Colors.white,
+            ),
       ),
       actions: [
         SettingsPopupButton(showBackground: showBackground),
       ],
       flexibleSpace: Container(
         decoration: BoxDecoration(
-          gradient: showBackground 
-            ? AppColors.mainGradient
-            : null,
-          color: !showBackground 
-            ? isLight
-              ? LightThemeColors.scaffoldBackgroundColor
-              : DarkThemeColors.scaffoldBackgroundColor
-            : null,
+          gradient: showBackground ? AppColors.mainGradient : null,
+          color: !showBackground
+              ? isLight
+                  ? LightThemeColors.scaffoldBackgroundColor
+                  : DarkThemeColors.scaffoldBackgroundColor
+              : null,
         ),
       ),
     );
@@ -134,9 +134,12 @@ class CustomMethods {
               },
               tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
             ),
-        actions: hideActions ? null : actions ?? [
-          const SettingsPopupButton(),
-        ],
+      actions: hideActions
+          ? null
+          : actions ??
+              [
+                const SettingsPopupButton(),
+              ],
       // actions: actions ?? [
       //   // isSearch
       //   //     ? IconButton(
@@ -196,39 +199,38 @@ class CustomMethods {
       title: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
+              fontWeight: FontWeight.w700,
+            ),
       ),
       leading: Padding(
         padding: const EdgeInsets.only(left: 8.0),
-        child: LocalStorageMethods.getSchoolDetails()?["logo"] == ""  
-          ? null 
-          : Image.network(
-              LocalStorageMethods.getSchoolDetails()?["logo"],
-              height: 56,
-              width: 56,
-              fit: BoxFit.scaleDown,
-            ),
+        child: LocalStorageMethods.getSchoolDetails()?["logo"] == ""
+            ? null
+            : Image.network(
+                LocalStorageMethods.getSchoolDetails()?["logo"],
+                height: 56,
+                width: 56,
+                fit: BoxFit.scaleDown,
+              ),
       ),
       leadingWidth: 56,
       actions: [
-        IconButton(
-          onPressed: () async {
-            Get.toNamed(
-              AppPages.qrPage,
-              arguments: {
-              },
-            );
-          },
-          icon: const Icon(
-            Icons.qr_code_2,
-          ),
-        ),
+        // IconButton(
+        //   onPressed: () async {
+        //     Get.toNamed(
+        //       AppPages.qrPage,
+        //       arguments: {},
+        //     );
+        //   },
+        //   icon: const Icon(
+        //     Icons.qr_code_2,
+        //   ),
+        // ),
         const SettingsPopupButton(showBackground: false),
       ],
       backgroundColor: isLight
-        ? LightThemeColors.scaffoldBackgroundColor 
-        : DarkThemeColors.scaffoldBackgroundColor,
+          ? LightThemeColors.scaffoldBackgroundColor
+          : DarkThemeColors.scaffoldBackgroundColor,
     );
   }
 
@@ -555,7 +557,7 @@ class CustomMethods {
         await launchUrl(uri);
       } else {
         throw 'Could not open phone dialer';
-      }   
+      }
     } catch (e) {
       showToast(e.toString(), Colors.red);
     }

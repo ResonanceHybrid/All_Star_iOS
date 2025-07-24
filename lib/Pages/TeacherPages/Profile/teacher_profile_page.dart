@@ -229,7 +229,7 @@ class _TeacherProfilePageState extends State<TeacherProfilePage> {
               children: [
                 SizedBox(height: 20.h),
                 GestureDetector(
-                  onTap: _showImagePickerDialog,
+                  //onTap: _showImagePickerDialog,
                   child: Stack(
                     children: [
                       CircleAvatar(
@@ -245,25 +245,25 @@ class _TeacherProfilePageState extends State<TeacherProfilePage> {
                           },
                         ),
                       ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Container(
-                          height: 30,
-                          width: 30,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.edit,
-                              color: AppColors.mainColor,
-                              size: 15,
-                            ),
-                          ),
-                        ),
-                      )
+                      // Positioned(
+                      //   top: 0,
+                      //   right: 0,
+                      //   child: Container(
+                      //     height: 30,
+                      //     width: 30,
+                      //     decoration: BoxDecoration(
+                      //       color: Theme.of(context).cardColor,
+                      //       shape: BoxShape.circle,
+                      //     ),
+                      //     child: const Center(
+                      //       child: Icon(
+                      //         Icons.edit,
+                      //         color: AppColors.mainColor,
+                      //         size: 15,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // )
                     ],
                   ),
                 ),
