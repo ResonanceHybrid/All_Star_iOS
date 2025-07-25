@@ -34,7 +34,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   kChangeThemeIcon,
                   height: 30.sp,
                 ),
-                title: Text('Change Theme', style: Theme.of(context).textTheme.bodyLarge),
+                title: Text('Change Theme',
+                    style: Theme.of(context).textTheme.bodyLarge),
                 onTap: () => MyTheme.changeTheme(),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
@@ -49,7 +50,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 alignment: Alignment.centerLeft,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("GENERAl", style: Theme.of(context).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w500)),
+                  child: Text("GENERAl",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge!
+                          .copyWith(fontWeight: FontWeight.w500)),
                 ),
               ),
               const SizedBox(height: 5),
@@ -75,63 +80,80 @@ class _SettingsPageState extends State<SettingsPage> {
               // widgetListTile("Account Settings", kSettingsIcon, () {}, "Privacy. Security, Language"),
               const SizedBox(height: 5),
               widgetListTile(
-                "Notification", 
-                kNotificationIcon, 
+                "Notification",
+                kNotificationIcon,
                 () {
                   Get.toNamed(AppPages.notificationPage);
-                }, 
+                },
                 "News Letter, App Updates",
               ),
               const SizedBox(height: 5),
-              widgetListTile(
-                "Enable notification", 
-                kEnableNotificationIcon, 
-                () {
-                  setState(() {
-                    notificationsEnabled = !notificationsEnabled;
-                  });
-                }, 
-                "",
-                trailing: Switch.adaptive(
-                  inactiveTrackColor: AppColors.colorsGrey300,
-                  activeTrackColor: AppColors.mainColor,
-                  value: notificationsEnabled, 
-                  onChanged: (bool val) {
-                    setState(() {
-                      notificationsEnabled = val;
-                    });
-                  },
-                )
-              ),
+              widgetListTile("Enable notification", kEnableNotificationIcon,
+                  () {
+                setState(() {
+                  notificationsEnabled = !notificationsEnabled;
+                });
+              }, "",
+                  trailing: Switch.adaptive(
+                    inactiveTrackColor: AppColors.colorsGrey300,
+                    activeTrackColor: AppColors.mainColor,
+                    value: notificationsEnabled,
+                    onChanged: (bool val) {
+                      setState(() {
+                        notificationsEnabled = val;
+                      });
+                    },
+                  )),
               const SizedBox(height: 5),
               widgetListTile(
-                "Edit profile", 
-                kEditProfileIcon, 
+                "Edit profile",
+                kEditProfileIcon,
                 () {
                   Get.toNamed(AppPages.editProfile);
-                }, 
+                },
                 "",
               ),
               const SizedBox(height: 5),
               widgetListTile(
                 "Change password",
-                kChangePasswordIcon, 
+                kChangePasswordIcon,
                 () {
                   Get.toNamed(AppPages.changePassword);
-                }, 
+                },
                 "",
               ),
-              
+
               const SizedBox(height: 5),
               widgetListTile(
-                "Logout", 
-                kLogoutIcon, 
+                "Logout",
+                kLogoutIcon,
                 () async {
-                  CustomMethods().loadingAlertDialog();
-                  await CustomMethods().removeSubscriptionAndFirebaseToken();
-                  LocalStorageMethods.removeUserDetails();
-                  Get.offAllNamed(AppPages.login);
-                }, 
+                  try {
+                    CustomMethods().loadingAlertDialog();
+
+                    // Firebase cleanup with timeout - don't let it block logout
+                    await CustomMethods()
+                        .removeSubscriptionAndFirebaseToken()
+                        .timeout(Duration(seconds: 12))
+                        .catchError((error) {
+                      print(
+                          "Firebase cleanup error (continuing logout): $error");
+                      return null; // Continue with logout even if this fails
+                    });
+
+                    // Always clear local storage
+                    LocalStorageMethods.removeUserDetails();
+
+                    // Navigate to login
+                    Get.offAllNamed(AppPages.login);
+                  } catch (e) {
+                    // Fallback: if anything fails, still logout
+                    print("Logout error: $e");
+                    Get.back(); // Close loading dialog
+                    LocalStorageMethods.removeUserDetails();
+                    Get.offAllNamed(AppPages.login);
+                  }
+                },
                 "",
               ),
             ],
@@ -141,7 +163,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  widgetListTile(String title, String icon, Function()? onTap, String? subTitle, {Widget? trailing}) {
+  widgetListTile(String title, String icon, Function()? onTap, String? subTitle,
+      {Widget? trailing}) {
     return ListTile(
       leading: Image.asset(
         icon,
@@ -150,10 +173,11 @@ class _SettingsPageState extends State<SettingsPage> {
       title: Text(title, style: Theme.of(context).textTheme.bodyLarge),
       subtitle: subTitle != "" ? Text(subTitle!) : null,
       onTap: onTap,
-      trailing: trailing ?? Icon(
-        Icons.arrow_forward_ios,
-        size: 16.sp,
-      ),
+      trailing: trailing ??
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 16.sp,
+          ),
     );
   }
 }
