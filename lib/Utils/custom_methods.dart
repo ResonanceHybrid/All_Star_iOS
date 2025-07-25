@@ -100,13 +100,34 @@ class CustomMethods {
   }
 
   removeSubscriptionAndFirebaseToken() async {
-    FirebaseMessaging.instance.unsubscribeFromTopic(
-        LocalStorageMethods.getSchoolDetails()?["domain_name"] +
-            "-" +
-            LocalStorageMethods.getUserDetails()["data"]["role"]);
-    await StudentApiMethods.uploadFCMToken(
-        userId: LocalStorageMethods.getUserDetails()["data"]["id"].toString(),
-        token: "");
+    try {
+      // Get user details once to avoid multiple calls
+      final userDetails = LocalStorageMethods.getUserDetails();
+      final schoolDetails = LocalStorageMethods.getSchoolDetails();
+
+      if (userDetails != null && schoolDetails != null) {
+        final topicName =
+            "${schoolDetails["domain_name"]}-${userDetails["data"]["role"]}";
+        final userId = userDetails["data"]["id"].toString();
+
+        // Add timeout and proper error handling
+        await Future.wait([
+          // Unsubscribe from topic with timeout
+          FirebaseMessaging.instance
+              .unsubscribeFromTopic(topicName)
+              .timeout(Duration(seconds: 5)),
+
+          // Upload empty FCM token with timeout
+          StudentApiMethods.uploadFCMToken(userId: userId, token: "")
+              .timeout(Duration(seconds: 8)),
+        ]).timeout(Duration(seconds: 10)); // Overall timeout
+
+        print("Firebase cleanup completed successfully");
+      }
+    } catch (e) {
+      print("Firebase cleanup failed: $e");
+      // Don't throw error - let logout continue even if cleanup fails
+    }
   }
 
   getAppBarWithTitle(
