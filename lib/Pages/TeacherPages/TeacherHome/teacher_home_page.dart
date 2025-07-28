@@ -30,9 +30,12 @@ class _TeacherHomePageState extends State<TeacherHomePage> {
     BlocProvider.of<HomeContainerCubit>(context).getUserDetails();
     BlocProvider.of<QrCubit>(context).getScanTypes(report: false);
   }
+
   @override
   Widget build(BuildContext context) {
-    bool role = LocalStorageMethods.getUserDetails()["data"]["is_class_teacher"] ?? false;
+    bool role = LocalStorageMethods.getUserDetails()["data"]
+            ["is_class_teacher"] ??
+        false;
     return Scaffold(
       appBar: cm.teacherAppBarWithAction(
         LocalStorageMethods.getSchoolDetails()["name"],
@@ -55,12 +58,12 @@ class _TeacherHomePageState extends State<TeacherHomePage> {
                   // mainAxisSpacing: 5,
                 ),
                 itemCount: role
-                  ? cm.topicsClassTeacher.length
-                  : cm.topicsTeacher.length,
+                    ? cm.topicsClassTeacher.length
+                    : cm.topicsTeacher.length,
                 itemBuilder: (BuildContext ctx, index) {
                   var item = role
-                    ? cm.topicsClassTeacher[index]
-                    : cm.topicsTeacher[index];
+                      ? cm.topicsClassTeacher[index]
+                      : cm.topicsTeacher[index];
                   return topicsWidget(
                     context,
                     item["icon"],
@@ -79,165 +82,172 @@ class _TeacherHomePageState extends State<TeacherHomePage> {
             left: 10,
             right: 10,
             child: BlocBuilder<HomeContainerCubit, HomeContainerState>(
-              builder: (context, state) {
-                return ContainerWidget(
-                  gradient: AppColors.homeGradient,
-                  radius: 25,
-                  padding: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0).copyWith(top: 45.h, bottom: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${state.userDetails?["data"]["name"] ?? "N/A"}",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
+                builder: (context, state) {
+              return ContainerWidget(
+                gradient: AppColors.homeGradient,
+                radius: 25,
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0)
+                      .copyWith(top: 45.h, bottom: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${state.userDetails?["data"]["name"] ?? "N/A"}",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
                                 .textTheme
                                 .displayMedium!
                                 .copyWith(
                                   color: Colors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4.0),
-                            Text(
-                              "${state.userDetails?["data"]["email"] ?? "N/A"}",
-                              style: Theme.of(context)
+                                ),
+                          ),
+                          const SizedBox(height: 4.0),
+                          Text(
+                            "${state.userDetails?["data"]["email"] ?? "N/A"}",
+                            style: Theme.of(context)
                                 .textTheme
                                 .displaySmall!
                                 .copyWith(
                                   color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                        
-                          ],
-                        ),
-                        SizedBox(height: 8.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      Get.toNamed(
-                                        AppPages.teacherSelfAttendanceReport,
-                                      );
-                                    },
-                                    child: Text(
-                                      "Your Attendance",
-                                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                        color: Colors.white,
-                                        fontSize: 14,
+                                ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Get.toNamed(
+                                      AppPages.teacherSelfAttendanceReport,
+                                    );
+                                  },
+                                  child: Text(
+                                    "Your Attendance",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge!
+                                        .copyWith(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2.0),
+                                Stack(
+                                  children: [
+                                    Container(
+                                      height: 2,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                          color: Colors.white),
+                                    ),
+                                    Container(
+                                      height: 2,
+                                      width: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        color: const Color(0xFFEDCB67),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2.0),
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        height: 2,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: Colors.white
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 2,
-                                        width: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: const Color(0xFFEDCB67),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
+                                  ],
+                                )
+                              ],
                             ),
-                            const SizedBox(width: 32.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      Get.toNamed(
-                                        AppPages.teacherProfile,
-                                      );
-                                    },
-                                    child: Text(
-                                      "View Profile",
-                                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                        color: Colors.white,
-                                        fontSize: 14,
+                          ),
+                          const SizedBox(width: 32.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Get.toNamed(
+                                      AppPages.teacherProfile,
+                                    );
+                                  },
+                                  child: Text(
+                                    "View Profile",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge!
+                                        .copyWith(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2.0),
+                                Stack(
+                                  alignment: Alignment.centerRight,
+                                  children: [
+                                    Container(
+                                      height: 2,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                          color: Colors.white),
+                                    ),
+                                    Container(
+                                      height: 2,
+                                      width: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        color: const Color(0xFFEDCB67),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2.0),
-                                  Stack(
-                                    alignment: Alignment.centerRight,
-                                    children: [
-                                      Container(
-                                        height: 2,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: Colors.white
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 2,
-                                        width: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: const Color(0xFFEDCB67),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      )
+                    ],
                   ),
-                );
-              }
-            ),
+                ),
+              );
+            }),
           ),
           Positioned(
             top: 0,
             left: 45,
             child: BlocBuilder<HomeContainerCubit, HomeContainerState>(
-              builder: (context, state) {
-                return CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: NetworkImage(
-                    state.userDetails?["data"]["image"] ??
+                builder: (context, state) {
+              return CircleAvatar(
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(
+                  state.userDetails?["data"]["image"] ??
                       "https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png",
-                  ),
-                  radius: 40,
-                );
-              }
-            ),
+                ),
+                radius: 40,
+              );
+            }),
           ),
         ],
       ),
     );
   }
 
-  SizedBox topicsWidget(BuildContext context, icon, title, route, [Map<String, dynamic>? argument]) {
+  SizedBox topicsWidget(BuildContext context, icon, title, route,
+      [Map<String, dynamic>? argument]) {
     return SizedBox(
       height: 107,
       child: Padding(
@@ -256,35 +266,39 @@ class _TeacherHomePageState extends State<TeacherHomePage> {
           child: ContainerWidget(
             radius: 10,
             padding: 5,
-            child: SizedBox(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 40.h,
-                    child: Image.asset(
-                      icon,
-                      height: 30,
-                      width: 30,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 32,
+                  child: Image.asset(
+                    icon,
+                    height: 28,
+                    width: 28,
                   ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Expanded(
+                ),
+                const SizedBox(
+                  height: 6,
+                ),
+                Flexible(
+                  child: Container(
+                    alignment: Alignment.center,
                     child: Text(
                       title,
                       textAlign: TextAlign.center,
-                      maxLines: 3,
-                      style: Theme.of(context).textTheme.displayLarge!.copyWith(
-                        color: AppColors.textDarkColorGrey,
-                        fontWeight: FontWeight.w200,
-                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: AppColors.textDarkColorGrey,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                            height: 1.2,
+                          ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
           ),
         ),
