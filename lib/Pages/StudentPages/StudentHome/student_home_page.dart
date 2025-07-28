@@ -41,8 +41,7 @@ class _HomePageState extends State<HomePage> {
     BaseResponse data = await StudentApiMethods.studentFeesData();
     if (data is SuccessResponse) {
       feeModel = FeeModel.fromJson(data.data);
-    } else if (data is ErrorResponse) {
-    }
+    } else if (data is ErrorResponse) {}
     setState(() {});
   }
 
@@ -155,8 +154,8 @@ class _HomePageState extends State<HomePage> {
     log(LocalStorageMethods.getUserDetails().toString());
     return Scaffold(
       appBar: cm.getAppbarWithDrawerAndAction(
-        context, 
-        showLogo: true, 
+        context,
+        showLogo: true,
         showBackground: false,
       ),
       drawerEnableOpenDragGesture: true,
@@ -164,7 +163,8 @@ class _HomePageState extends State<HomePage> {
       body: Stack(
         children: [
           ListView(
-            physics: const NeverScrollableScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: const NeverScrollableScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics()),
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             children: [
               SizedBox(height: 205.h),
@@ -181,9 +181,9 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (BuildContext ctx, index) {
                   var item = topics[index];
                   return topicsWidget(
-                    context, 
+                    context,
                     item["icon"],
-                    item["name"], 
+                    item["name"],
                     item["route"],
                   );
                 },
@@ -196,183 +196,190 @@ class _HomePageState extends State<HomePage> {
             left: 10,
             right: 10,
             child: BlocBuilder<HomeContainerCubit, HomeContainerState>(
-              builder: (context, state) {
-                final Map<String, dynamic>? userDetails = state.userDetails;
-                return ContainerWidget(
-                  gradient: AppColors.homeGradient,
-                  radius: 25,
-                  padding: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0).copyWith(top: 45.h, bottom: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${userDetails?["data"]["name"] ?? "N/A"}",
-                              style: Theme.of(context)
+                builder: (context, state) {
+              final Map<String, dynamic>? userDetails = state.userDetails;
+              return ContainerWidget(
+                gradient: AppColors.homeGradient,
+                radius: 25,
+                padding: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0)
+                      .copyWith(top: 45.h, bottom: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${userDetails?["data"]["name"] ?? "N/A"}",
+                            style: Theme.of(context)
                                 .textTheme
                                 .displayMedium!
                                 .copyWith(
                                   color: Colors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 4.0),
-                            Text(
-                              "${userDetails?["data"]["email"] ?? "N/A"}",
-                              style: Theme.of(context)
+                                ),
+                          ),
+                          const SizedBox(height: 4.0),
+                          Text(
+                            "${userDetails?["data"]["email"] ?? "N/A"}",
+                            style: Theme.of(context)
                                 .textTheme
                                 .displaySmall!
                                 .copyWith(
                                   color: Colors.white,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                        
-                          ],
-                        ),
-                        SizedBox(height: 8.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      Get.toNamed(
-                                        AppPages.studentprofile,
-                                        arguments: false,
-                                      );
-                                    },
-                                    child: Text(
-                                      "View Profile",
-                                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Get.toNamed(
+                                      AppPages.studentprofile,
+                                      arguments: false,
+                                    );
+                                  },
+                                  child: Text(
+                                    "View Profile",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge!
+                                        .copyWith(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2.0),
+                                Stack(
+                                  children: [
+                                    Container(
+                                      height: 2,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                          color: Colors.white),
+                                    ),
+                                    Container(
+                                      height: 2,
+                                      width: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        color: const Color(0xFFEDCB67),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2.0),
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        height: 2,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: Colors.white
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 2,
-                                        width: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: const Color(0xFFEDCB67),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
+                                  ],
+                                )
+                              ],
                             ),
-                            const SizedBox(width: 32.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            Get.toNamed(
-                                              AppPages.fees,
-                                              arguments: false,
-                                            );
-                                          },
-                                          child: Text(
-                                            "Rs. ${_showFeeAmount 
-                                              ? feeModel?.summary.values.last?.toString() ?? ""
-                                              : feeModel?.summary.values.last?.toString().replaceAll(RegExp(r'\d'), 'X') ?? ""}",
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      InkWell(
+                          ),
+                          const SizedBox(width: 32.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            _showFeeAmount = !_showFeeAmount;
-                                          });
-                                        }, 
-                                        child: Icon(
-                                          _showFeeAmount ? Icons.visibility : Icons.visibility_off, 
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2.0),
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        height: 2,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: Colors.white
+                                          Get.toNamed(
+                                            AppPages.fees,
+                                            arguments: false,
+                                          );
+                                        },
+                                        child: Text(
+                                          "Rs. ${_showFeeAmount ? feeModel?.summary.values.last?.toString() ?? "" : feeModel?.summary.values.last?.toString().replaceAll(RegExp(r'\d'), 'X') ?? ""}",
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge!
+                                              .copyWith(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                         ),
                                       ),
-                                      Container(
-                                        height: 2,
-                                        width: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(100),
-                                          color: const Color(0xFFEDCB67),
-                                        ),
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          _showFeeAmount = !_showFeeAmount;
+                                        });
+                                      },
+                                      child: Icon(
+                                        _showFeeAmount
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                        color: Colors.white,
                                       ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 2.0),
+                                Stack(
+                                  children: [
+                                    Container(
+                                      height: 2,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                          color: Colors.white),
+                                    ),
+                                    Container(
+                                      height: 2,
+                                      width: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        color: const Color(0xFFEDCB67),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      )
+                    ],
                   ),
-                );
-              }
-            ),
+                ),
+              );
+            }),
           ),
           Positioned(
             top: 0,
             left: 45,
             child: BlocBuilder<HomeContainerCubit, HomeContainerState>(
-              builder: (context, state) {
-                final Map<String, dynamic>? userDetails = state.userDetails;
-                return CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: NetworkImage(
-                    userDetails?["data"]["image"] ??
+                builder: (context, state) {
+              final Map<String, dynamic>? userDetails = state.userDetails;
+              return CircleAvatar(
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(
+                  userDetails?["data"]["image"] ??
                       "https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png",
-                  ),
-                  radius: 40,
-                );
-              }
-            ),
+                ),
+                radius: 40,
+              );
+            }),
           ),
         ],
       ),
@@ -391,30 +398,37 @@ class _HomePageState extends State<HomePage> {
           child: ContainerWidget(
             radius: 10,
             padding: 5,
-            child: SizedBox(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 32,
+                  child: Image.asset(
                     icon,
-                    height: 30,
-                    width: 30,
+                    height: 28,
+                    width: 28,
                   ),
-                  const SizedBox(
-                    height: 7,
-                  ),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    style: Theme.of(context).textTheme.displayLarge!.copyWith(
-                      fontWeight: FontWeight.w200,
-                      color: AppColors.textDarkColorGrey,
+                ),
+                const SizedBox(height: 6),
+                Flexible(
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textDarkColorGrey,
+                            fontSize: 12,
+                            height: 1.2,
+                          ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
