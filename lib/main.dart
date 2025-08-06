@@ -40,15 +40,12 @@ Future<void> main() async {
     log('Firebase initialization error: $e');
   }
 
-  // Initialize local storage after Firebase
   try {
     await LocalStorageMethods.init();
 
-    // Auto-set Sanjeewani School from API if no school is selected
     await _setSanjeewaniSchoolFromAPI();
   } catch (e) {
     log('LocalStorage initialization error: $e');
-    // Continue without local storage if it fails
   }
 
   await setUpLocator();
@@ -63,12 +60,10 @@ Future<void> main() async {
   );
 }
 
-// Function to fetch and set Sanjeewani School from API
 Future<void> _setSanjeewaniSchoolFromAPI() async {
   try {
     final schoolDetails = LocalStorageMethods.getSchoolDetails();
 
-    // If no school is selected, fetch and set Sanjeewani School
     if (schoolDetails == null ||
         schoolDetails["domainName"] == null ||
         schoolDetails["domainName"] == "" ||
@@ -76,20 +71,16 @@ Future<void> _setSanjeewaniSchoolFromAPI() async {
         schoolDetails["name"] == "") {
       log('No school selected, fetching Sanjeewani School from API...');
 
-      // Search for Sanjeewani School using the API
-      BaseResponse response = await InitialApi.getSchoolList(
-          schoolName: "Sanjeewani", // Search for Sanjeewani School
-          page: 1);
+      BaseResponse response =
+          await InitialApi.getSchoolList(schoolName: "Sanjeewani", page: 1);
 
       if (response is SuccessResponse) {
         SchoolListModel schoolListModel = response.data as SchoolListModel;
 
         if (schoolListModel.data != null && schoolListModel.data!.isNotEmpty) {
-          // Find Sanjeewani School in the results
           School? sanjeewaniSchool;
 
           for (School school in schoolListModel.data!) {
-            // Check if school name contains "Sanjeewani" (case insensitive)
             if (school.name != null &&
                 school.name!.toLowerCase().contains("sanjeewani")) {
               sanjeewaniSchool = school;
@@ -98,7 +89,6 @@ Future<void> _setSanjeewaniSchoolFromAPI() async {
           }
 
           if (sanjeewaniSchool != null) {
-            // Save Sanjeewani School details from API response
             await LocalStorageMethods.saveSchoolDetails(
               sanjeewaniSchool.domainName ?? "",
               sanjeewaniSchool.logo ?? "",
@@ -131,38 +121,37 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  AppUpdateInfo? _updateInfo;
+  //AppUpdateInfo? _updateInfo;
 
-  Future<void> checkForUpdate() async {
-    try {
-      final info = await InAppUpdate.checkForUpdate();
-      _updateInfo = info;
+  // Future<void> checkForUpdate() async {
+  //   try {
+  //     final info = await InAppUpdate.checkForUpdate();
+  //     _updateInfo = info;
 
-      if (_updateInfo?.updateAvailability ==
-          UpdateAvailability.updateAvailable) {
-        await InAppUpdate.performImmediateUpdate();
-      }
-    } catch (e) {
-      log('App update error: $e');
-    }
-  }
+  //     if (_updateInfo?.updateAvailability ==
+  //         UpdateAvailability.updateAvailable) {
+  //       await InAppUpdate.performImmediateUpdate();
+  //     }
+  //   } catch (e) {
+  //     log('App update error: $e');
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
 
-    // Set orientation early in initState
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
 
     // Check for updates after a brief delay to avoid interference with app startup
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        checkForUpdate();
-      });
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Future.delayed(const Duration(milliseconds: 500), () {
+    //     checkForUpdate();
+    //   });
+    // });
   }
 
   @override
@@ -217,17 +206,14 @@ class _MyAppState extends State<MyApp> {
     final schoolDetails = LocalStorageMethods.getSchoolDetails();
     final userDetails = LocalStorageMethods.getUserDetails();
 
-    // Check if school is set (should be Sanjeewani now)
     if (schoolDetails == null || schoolDetails["logo"] == "") {
       return AppPages.selectSchool;
     }
 
-    // Check user details
     if (userDetails == null || userDetails["token"] == "") {
       return AppPages.login;
     }
 
-    // Route based on user role
     final userRole = userDetails["data"]?["role"];
     switch (userRole) {
       case "student":
