@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(
                       15.0,
-                    ), 
+                    ),
                     bottomRight: Radius.circular(
                       15.0,
                     ),
@@ -171,8 +171,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 height: responsiveHeight * 0.5,
                 width: MediaQuery.of(context)
-                  .size
-                  .width, // set the height of the container
+                    .size
+                    .width, // set the height of the container
               ),
             ),
             ListView(
@@ -180,8 +180,8 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 SizedBox(
                   height: responsiveHeight > 600
-                    ? responsiveHeight * .24
-                    : responsiveHeight * 0.125,
+                      ? responsiveHeight * .24
+                      : responsiveHeight * 0.125,
                 ),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 20.sp),
@@ -246,23 +246,26 @@ class _LoginPageState extends State<LoginPage> {
                                 },
                                 child: Text(
                                   "Remember me",
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Colors.black,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(
+                                        color: Colors.black,
+                                      ),
                                 ),
                               ),
                             ),
-                            InkWell(
-                              onTap: () {
-                                emailController.clear();
-                                passwordController.clear();
-                                Get.toNamed(AppPages.resetPassword);
-                              },
-                              child: const Text(
-                                "Forgot Password?",
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
+                            // InkWell(
+                            //   onTap: () {
+                            //     emailController.clear();
+                            //     passwordController.clear();
+                            //     Get.toNamed(AppPages.resetPassword);
+                            //   },
+                            //   child: const Text(
+                            //     "Forgot Password?",
+                            //     style: TextStyle(color: Colors.red),
+                            //   ),
+                            // ),
                           ],
                         ),
                         SizedBox(
@@ -296,33 +299,33 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ],
             ),
-            Positioned(
-              top: 50,
-              right: 24,
-              child: GestureDetector(
-                onTap: () async {
-                  var response = await Get.to(
-                    () => const SearchAndPaginateSchoolList());
-                  if(response != null) {
-                    LocalStorageMethods.removeUserDetails();
-                    LocalStorageMethods.removeSchoolDetails();
-                    LocalStorageMethods.removeCredentials();
-                    Get.toNamed(AppPages.selectSchool, arguments: response);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.refresh,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
+            // Positioned(
+            //   top: 50,
+            //   right: 24,
+            //   child: GestureDetector(
+            //     onTap: () async {
+            //       var response = await Get.to(
+            //         () => const SearchAndPaginateSchoolList());
+            //       if(response != null) {
+            //         LocalStorageMethods.removeUserDetails();
+            //         LocalStorageMethods.removeSchoolDetails();
+            //         LocalStorageMethods.removeCredentials();
+            //         Get.toNamed(AppPages.selectSchool, arguments: response);
+            //       }
+            //     },
+            //     child: Container(
+            //       padding: const EdgeInsets.all(4),
+            //       decoration: BoxDecoration(
+            //         color: Theme.of(context).canvasColor,
+            //         shape: BoxShape.circle,
+            //       ),
+            //       child: const Icon(
+            //         Icons.refresh,
+            //         size: 24,
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

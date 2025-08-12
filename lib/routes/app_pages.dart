@@ -84,7 +84,7 @@ class AppPages {
   static const editProfile = "/editProfile";
   static const resetPassword = "/resetPassword";
   static const otpVerification = "/otpVerification";
-
+  static const noticeAndEvents = "/noticeAndEvents";
   //student
   static const studentNavigation = "/studentNavigation";
   static const onlineclass = "/onlineclass";
@@ -215,13 +215,12 @@ class AppPages {
       ),
     ),
     GetPage(
-      name: selectSchool,
-      page: () {
-        return SelectSchoolPage(
-          selectedSchool: Get.arguments,
-        );
-      }
-    ),
+        name: selectSchool,
+        page: () {
+          return SelectSchoolPage(
+            selectedSchool: Get.arguments,
+          );
+        }),
     GetPage(
       name: login,
       page: () => const LoginPage(),

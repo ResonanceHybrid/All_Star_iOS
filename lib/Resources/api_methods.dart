@@ -68,13 +68,14 @@ class ApiMethods {
     }
   }
 
-  static editProfile({required String email, String? name, String? address}) async {
+  static editProfile(
+      {required String email, String? name, String? address}) async {
     try {
       Response response = await dio.post(
         Strings.editProfileUrl,
         data: {
           "email": email,
-          "name": name, 
+          "name": name,
           "address": address,
         },
       );
@@ -93,10 +94,8 @@ class ApiMethods {
       Response response = await dio.get(
         Strings.resetPasswordUrl,
         queryParameters: {
-          if(email != null)
-          "email": email,
-          if(phoneNumber != null && email == null)
-          "phone": phoneNumber,
+          if (email != null) "email": email,
+          if (phoneNumber != null && email == null) "phone": phoneNumber,
         },
       );
       return SuccessResponse(
@@ -259,8 +258,8 @@ class ApiMethods {
     }
   }
 
-  Future<BaseResponse> getAttendanceReport(String type,
-      String classId, String sectionId, String monthId) async {
+  Future<BaseResponse> getAttendanceReport(
+      String type, String classId, String sectionId, String monthId) async {
     try {
       Map body = {
         "type": type,
@@ -282,7 +281,8 @@ class ApiMethods {
 
   Future<BaseResponse> getTeacherAttendanceReport({String? type}) async {
     try {
-      Response response = await dio.get('teacher/attendance/report?type=${type ?? ""}');
+      Response response =
+          await dio.get('teacher/attendance/report?type=${type ?? ""}');
       return SuccessResponse(
         data: response.data,
       );
@@ -293,7 +293,8 @@ class ApiMethods {
     }
   }
 
-  Future<BaseResponse> getCasEvaluation(String classId, String sectionId, String subjectId, String date) async {
+  Future<BaseResponse> getCasEvaluation(
+      String classId, String sectionId, String subjectId, String date) async {
     try {
       Map<String, dynamic> body = {
         'class_id': classId,
@@ -301,7 +302,8 @@ class ApiMethods {
         'subject_id': subjectId,
         'date': date,
       };
-      Response response = await dio.get('teacher/exam/cas-evaluation/create', data: body);
+      Response response =
+          await dio.get('teacher/exam/cas-evaluation/create', data: body);
       return SuccessResponse(
         data: response.data,
       );
@@ -316,7 +318,8 @@ class ApiMethods {
     required Map<String, dynamic> casData,
   }) async {
     try {
-      Response response = await dio.post("teacher/exam/cas-evaluation/store", data: casData);
+      Response response =
+          await dio.post("teacher/exam/cas-evaluation/store", data: casData);
       return SuccessResponse(
         data: response.data,
       );
@@ -327,7 +330,8 @@ class ApiMethods {
     }
   }
 
-  Future<BaseResponse> getMonthlyCasReport(String classId, String sectionId, String subjectId, String monthId) async {
+  Future<BaseResponse> getMonthlyCasReport(String classId, String sectionId,
+      String subjectId, String monthId) async {
     try {
       Map<String, dynamic> body = {
         'class_id': classId,
@@ -335,7 +339,8 @@ class ApiMethods {
         'subject_id': subjectId,
         'month_id': monthId,
       };
-      Response response = await dio.get('teacher/exam/cas-evaluation/report', data: body);
+      Response response =
+          await dio.get('teacher/exam/cas-evaluation/report', data: body);
       return SuccessResponse(
         data: response.data,
       );
@@ -877,6 +882,46 @@ class ApiMethods {
     } on DioException catch (e) {
       return ErrorResponse(
         message: e.message,
+      );
+    }
+  }
+// Add this method to your ApiMethods class
+
+  static Future<BaseResponse> searchSchools({
+    required String name,
+    required int page,
+  }) async {
+    try {
+      final response = await dio.get(
+        'https://demo.allstarems.com/api/school/list',
+        queryParameters: {
+          'name': name,
+          'page': page,
+        },
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          receiveTimeout: const Duration(seconds: 10),
+          sendTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return SuccessResponse(
+          message: "Schools fetched successfully",
+          data: response.data,
+        );
+      } else {
+        return ErrorResponse(
+          message: "Failed to fetch schools",
+        );
+      }
+    } catch (e) {
+      log('Error searching schools: $e');
+      return ErrorResponse(
+        message: "Network error occurred",
       );
     }
   }

@@ -58,6 +58,7 @@ class _AddHomeworkPageState extends State<AddHomeworkPage> {
   @override
   void initState() {
     super.initState();
+    // Fetch user details on init
     BlocProvider.of<HomeContainerCubit>(context).getUserDetails();
     startDateController.text =
         NepaliDateFormat("yyyy-MM-dd").format(NepaliDateTime.now());
@@ -65,13 +66,23 @@ class _AddHomeworkPageState extends State<AddHomeworkPage> {
         .format(NepaliDateTime.now().add(const Duration(days: 1)));
   }
 
+  // Function to handle refresh - updates both homework controller and user details
+  Future<void> _onRefresh() async {
+    final sc = Get.put(TeacherAddHomeworkController());
+
+    // Refresh homework controller data
+    sc.refreshFunction();
+
+    // Also refresh user details to get latest is_homework_image_enabled value
+    if (mounted) {
+      BlocProvider.of<HomeContainerCubit>(context).getUserDetails();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator.adaptive(
-      onRefresh: () async {
-        final sc = Get.put(TeacherAddHomeworkController());
-        sc.refreshFunction();
-      },
+      onRefresh: _onRefresh, // Use the updated refresh function
       child: Scaffold(
         appBar: cm.getAppBarWithTitle(
           context,

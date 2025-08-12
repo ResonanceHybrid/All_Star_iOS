@@ -63,19 +63,19 @@ class _StudentNavigationPageState extends State<StudentNavigationPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvoked: (bool hasPopped) async {
-        final timegap = DateTime.now().difference(preBackPress);
-        final cantExit = timegap >= const Duration(seconds: 2);
-        preBackPress = DateTime.now();
-        if (cantExit) {
-          //show snackbar
-          cm.showSnackBar(context, "Swipe back again to exit", Colors.red);
-          return;
-        } else {
-          Navigator.pop(context);
-        }
-      },
+      // canPop: false,
+      // onPopInvoked: (bool hasPopped) async {
+      //   final timegap = DateTime.now().difference(preBackPress);
+      //   final cantExit = timegap >= const Duration(seconds: 2);
+      //   preBackPress = DateTime.now();
+      //   if (cantExit) {
+      //     //show snackbar
+      //     cm.showSnackBar(context, "Swipe back again to exit", Colors.red);
+      //     return;
+      //   } else {
+      //     Navigator.pop(context);
+      //   }
+      // },
       child: Scaffold(
         body: Center(child: pages.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomAppBar(
@@ -83,16 +83,16 @@ class _StudentNavigationPageState extends State<StudentNavigationPage> {
           shape: const CircularNotchedRectangle(),
           clipBehavior: Clip.antiAlias,
           notchMargin: 6.sp,
-          padding: EdgeInsets.symmetric(horizontal: 16.sp).copyWith(bottom: 16.0),
+          padding:
+              EdgeInsets.symmetric(horizontal: 16.sp).copyWith(bottom: 16.0),
           height: 72.sp,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: Theme.of(context).highlightColor,
-              )
-            ),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: Theme.of(context).highlightColor,
+                )),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -147,16 +147,16 @@ class _StudentNavigationPageState extends State<StudentNavigationPage> {
             height: 28,
             width: 28,
             color: _selectedIndex == index
-              ? Theme.of(context).primaryColor
-              : Colors.grey,
+                ? Theme.of(context).primaryColor
+                : Colors.grey,
           ),
           SizedBox(height: 1.sp),
           Text(
             name,
             style: TextStyle(
               color: _selectedIndex == index
-                ? Theme.of(context).primaryColor
-                : Colors.grey,
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
               fontSize: 10.sp,
               fontWeight: FontWeight.w500,
             ),
