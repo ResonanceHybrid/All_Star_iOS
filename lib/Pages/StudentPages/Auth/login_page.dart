@@ -35,14 +35,40 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isObscure = false;
   final _formKey = GlobalKey<FormState>();
-  bool isRememberMe = false;
+  bool isRememberMe = true; // Default to true
   String? logo;
 
   @override
   void initState() {
     super.initState();
+    checkSessionTimeout();
     getSchoolLogoAndName();
     getCredential();
+  }
+
+  // Check if session has expired (24 hours)
+  void checkSessionTimeout() {
+    var loginTime = LocalStorageMethods.getLoginTime();
+    if (loginTime != null) {
+      DateTime loginDateTime = DateTime.parse(loginTime);
+      DateTime currentTime = DateTime.now();
+      Duration difference = currentTime.difference(loginDateTime);
+
+      // If more than 24 hours have passed, clear user data and redirect to login
+      if (difference.inHours >= 24) {
+        LocalStorageMethods.removeUserDetails();
+        LocalStorageMethods.removeLoginTime();
+        // Optionally show a message about session timeout
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Session expired. Please login again."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        });
+      }
+    }
   }
 
   getSchoolLogoAndName() {
@@ -75,6 +101,20 @@ class _LoginPageState extends State<LoginPage> {
       LocalStorageMethods.saveUserDetails(
         response.data,
       );
+
+      // Save login time for session management
+      LocalStorageMethods.saveLoginTime(DateTime.now().toIso8601String());
+
+      // Save credentials if remember me is checked
+      if (isRememberMe) {
+        LocalStorageMethods.saveCredentials(
+          isRememberMe,
+          emailController.text,
+          passwordController.text,
+        );
+      } else {
+        LocalStorageMethods.removeCredentials();
+      }
 
       if (response.data["data"]["role"] != null) {
         if (response.data["data"]["role"] == "student") {
@@ -190,10 +230,50 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: CachedNetworkImage(
-                            imageUrl: logo ?? "",
-                            height: 100.sp,
-                          ),
+                          child: logo != null && logo!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: logo!,
+                                  height: 100.sp,
+                                  width: 100.sp,
+                                  fit: BoxFit.contain,
+                                  placeholder: (context, url) => Container(
+                                    height: 100.sp,
+                                    width: 100.sp,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) {
+                                    // Silent fail — just show asset image
+                                    return ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.asset(
+                                        'assets/icons/Sanjeewani School.jpg',
+                                        height: 100.sp,
+                                        width: 100.sp,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    );
+                                  },
+                                  httpHeaders: const {
+                                    'User-Agent':
+                                        'Mozilla/5.0 (compatible; Flutter app)',
+                                  },
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    'assets/icons/Sanjeewani School.jpg',
+                                    height: 100.sp,
+                                    width: 100.sp,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                         ),
                         TextFormFieldWidget(
                           label: Strings.email,
@@ -234,15 +314,8 @@ class _LoginPageState extends State<LoginPage> {
                                   setState(() {
                                     isRememberMe = value!;
                                   });
-                                  if (isRememberMe) {
-                                    LocalStorageMethods.saveCredentials(
-                                      isRememberMe,
-                                      emailController.text,
-                                      passwordController.text,
-                                    );
-                                  } else {
-                                    LocalStorageMethods.removeCredentials();
-                                  }
+                                  // Don't save/remove credentials here anymore
+                                  // Will be handled during login
                                 },
                                 child: Text(
                                   "Remember me",

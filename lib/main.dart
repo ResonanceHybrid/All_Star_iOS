@@ -73,22 +73,22 @@ class _MyAppState extends State<MyApp> {
 
   AppUpdateInfo? _updateInfo;
 
-  Future<void> checkForUpdate() async {
-    // Only check for updates on Android
-    if (!Platform.isAndroid) return;
+  // Future<void> checkForUpdate() async {
+  //   // Only check for updates on Android
+  //   if (!Platform.isAndroid) return;
 
-    try {
-      final info = await InAppUpdate.checkForUpdate();
-      _updateInfo = info;
+  //   try {
+  //     final info = await InAppUpdate.checkForUpdate();
+  //     _updateInfo = info;
 
-      if (_updateInfo?.updateAvailability ==
-          UpdateAvailability.updateAvailable) {
-        await InAppUpdate.performImmediateUpdate();
-      }
-    } catch (e) {
-      log('App update error: $e');
-    }
-  }
+  //     if (_updateInfo?.updateAvailability ==
+  //         UpdateAvailability.updateAvailable) {
+  //       await InAppUpdate.performImmediateUpdate();
+  //     }
+  //   } catch (e) {
+  //     log('App update error: $e');
+  //   }
+  // }
 
   @override
   void initState() {
@@ -103,11 +103,11 @@ class _MyAppState extends State<MyApp> {
     // Auto-select Sanjeewani School
     _autoSelectSanjeewaniSchool();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        checkForUpdate();
-      });
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Future.delayed(const Duration(milliseconds: 500), () {
+    //     checkForUpdate();
+    //   });
+    // });
   }
 
   Future<void> _autoSelectSanjeewaniSchool() async {

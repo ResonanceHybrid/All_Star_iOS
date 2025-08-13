@@ -16,6 +16,7 @@ class LocalStorageMethods {
   static const String _credentialsKey = 'credentials';
   static const String _userDetails = 'userDetails';
   static const String _schoolDetailsKey = 'schoolDetails';
+  static const String _loginTimeKey = 'login_time'; // Add this line
 
   /// init get storage services
   static init() async {
@@ -103,5 +104,15 @@ class LocalStorageMethods {
   /// clear all data from shared pref
   static Future<void> clear(key) async => await storage.remove(key);
 
-  // set user details
+  // SESSION TIMEOUT METHODS - Add these methods:
+
+  /// save login time for session management
+  static Future<void> saveLoginTime(String loginTime) =>
+      storage.write(_loginTimeKey, loginTime);
+
+  /// get login time
+  static String? getLoginTime() => storage.read(_loginTimeKey);
+
+  /// remove login time
+  static removeLoginTime() => storage.remove(_loginTimeKey);
 }

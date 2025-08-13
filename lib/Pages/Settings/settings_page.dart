@@ -128,31 +128,36 @@ class _SettingsPageState extends State<SettingsPage> {
                 "Logout",
                 kLogoutIcon,
                 () async {
-                  try {
-                    CustomMethods().loadingAlertDialog();
+                  // Show loading dialog
+                  CustomMethods().loadingAlertDialog();
 
-                    // Firebase cleanup with timeout - don't let it block logout
-                    await CustomMethods()
-                        .removeSubscriptionAndFirebaseToken()
-                        .timeout(Duration(seconds: 12))
-                        .catchError((error) {
-                      print(
-                          "Firebase cleanup error (continuing logout): $error");
-                      return null; // Continue with logout even if this fails
-                    });
-
-                    // Always clear local storage
-                    LocalStorageMethods.removeUserDetails();
-
-                    // Navigate to login
-                    Get.offAllNamed(AppPages.login);
-                  } catch (e) {
-                    // Fallback: if anything fails, still logout
-                    print("Logout error: $e");
-                    Get.back(); // Close loading dialog
-                    LocalStorageMethods.removeUserDetails();
-                    Get.offAllNamed(AppPages.login);
+                  // Start logout tasks but don't block navigation
+                  Future cleanupTask() async {
+                    try {
+                      await CustomMethods()
+                          .removeSubscriptionAndFirebaseToken()
+                          .timeout(Duration(seconds: 12), onTimeout: () {
+                        print("Firebase cleanup timed out, continuing logout");
+                        return null;
+                      });
+                    } catch (e) {
+                      print("Firebase cleanup error: $e");
+                    }
                   }
+
+                  // Run cleanup in the background
+                  cleanupTask();
+
+                  // Clear local storage immediately
+                  LocalStorageMethods.removeUserDetails();
+
+                  // Navigate to login after a tiny delay to allow dialog to show
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    // Ensure UI updates happen on main thread
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Get.offAllNamed(AppPages.login);
+                    });
+                  });
                 },
                 "",
               ),

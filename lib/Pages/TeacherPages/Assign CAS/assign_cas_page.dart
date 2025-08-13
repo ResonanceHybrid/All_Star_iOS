@@ -90,13 +90,13 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
         examSetupDetailId = assignCasMarks!.examSetupDetailId;
 
         for (var student in assignCasMarks!.studentCasDetails) {
-        for (var ecaDetail in student.casDetails) {
-          originalValues['${student.studentId}_${ecaDetail.casDetailId}'] =
-              ecaDetail.marks.toString();
+          for (var ecaDetail in student.casDetails) {
+            originalValues['${student.studentId}_${ecaDetail.casDetailId}'] =
+                ecaDetail.marks.toString();
+          }
+          // originalValues['${student.studentId}_attendance'] =
+          //     student.attendanceDays.toString();
         }
-        // originalValues['${student.studentId}_attendance'] =
-        //     student.attendanceDays.toString();
-      }
       } else {
         error = "NO Data Found";
       }
@@ -256,9 +256,9 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
   @override
   Widget build(BuildContext context) {
     TextStyle kbodyTextStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(
-      color: AppColors.mainColor,
-      fontWeight: FontWeight.bold,
-    );
+          color: AppColors.mainColor,
+          fontWeight: FontWeight.bold,
+        );
 
     return Form(
       key: _formKey,
@@ -287,7 +287,9 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                     : Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0).copyWith(top: 24.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0)
+                                    .copyWith(top: 24.0),
                             child: Column(
                               children: [
                                 Row(
@@ -296,7 +298,8 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                       mapItems: casTypes,
                                       value: _selectedCasType,
                                       onChanged: (value) {
-                                        updateExamTypes(casType: value.toString());
+                                        updateExamTypes(
+                                            casType: value.toString());
                                         setState(() {
                                           _selectedCasType = value.toString();
                                         });
@@ -327,7 +330,8 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                   height: 10,
                                 ),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     CASFilterDropdown(
                                       mapItems: examList,
@@ -342,9 +346,11 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                       style: TextButton.styleFrom(
                                         backgroundColor: AppColors.mainColor,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(5),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
                                         ),
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20),
                                       ),
                                       onPressed: () async {
                                         await fetchUATMarks();
@@ -366,7 +372,8 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                   height: 12,
                                 ),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       "Fill Marks",
@@ -374,10 +381,8 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                           .textTheme
                                           .headlineSmall!
                                           .copyWith(
-                                              color:
-                                                  AppColors.mainColor,
-                                              fontWeight:
-                                                  FontWeight.bold),
+                                              color: AppColors.mainColor,
+                                              fontWeight: FontWeight.bold),
                                     ),
                                     Text(
                                       "Leave blank if absent",
@@ -385,10 +390,8 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                           .textTheme
                                           .titleMedium!
                                           .copyWith(
-                                              color:
-                                                  AppColors.mainColor,
-                                              fontWeight:
-                                                  FontWeight.normal),
+                                              color: AppColors.mainColor,
+                                              fontWeight: FontWeight.normal),
                                     ),
                                   ],
                                 ),
@@ -400,17 +403,19 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                           ),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
                               child: DataTable2(
-                                minWidth: assignCasMarks!.casDetails.isEmpty ? null : 1000,
+                                minWidth: assignCasMarks!.casDetails.isEmpty
+                                    ? null
+                                    : 1000,
                                 fixedLeftColumns: 2,
                                 dataRowHeight: 55,
                                 headingRowHeight: 72,
                                 columnSpacing: 8,
-                                lmRatio: 1.0,
-                                smRatio: 0.35,
                                 horizontalMargin: 6.0,
-                                headingRowColor: MaterialStatePropertyAll(Colors.grey.withOpacity(0.2)),
+                                headingRowColor: MaterialStatePropertyAll(
+                                    Colors.grey.withOpacity(0.2)),
                                 border: TableBorder.symmetric(
                                   inside: const BorderSide(
                                     width: 1,
@@ -422,21 +427,96 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                   ),
                                 ),
                                 columns: [
-                                  newHeading("S.N", columnSize: ColumnSize.S),
-                                  newHeading(
-                                    "Student Name", 
-                                    isStudentName: true, 
-                                    columnSize: ColumnSize.L,
-                                    canOverflow: true,
+                                  // S.N column - equivalent to FlexColumnWidth(2)
+                                  DataColumn2(
+                                    size: ColumnSize.S,
+                                    fixedWidth:
+                                        30, // Proportionally smaller for S.N
+                                    label: Center(
+                                      child: Text(
+                                        "#",
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              color: Colors.black,
+                                              height: 1.2,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                      ),
+                                    ),
                                   ),
+                                  // Student Name column - equivalent to FlexColumnWidth(8)
+                                  DataColumn2(
+                                    size: ColumnSize.L,
+                                    fixedWidth:
+                                        150, // Proportionally larger for student names
+                                    label: Center(
+                                      child: Text(
+                                        "Student Name",
+                                        textAlign: TextAlign.left,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              color: Colors.black,
+                                              height: 1.2,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                  // CAS marks columns - equivalent to FlexColumnWidth(3) each
                                   ...assignCasMarks!.casDetails.map((e) {
-                                    return newHeading(
-                                      "${e.casTitle}(${e.fullMarks})",
-                                      canOverflow: true,
+                                    return DataColumn2(
+                                      size: ColumnSize.M,
+                                      fixedWidth:
+                                          90, // Fixed width similar to theory/practical columns
+                                      label: Center(
+                                        child: Text(
+                                          "${e.casTitle}\n(${e.fullMarks})",
+                                          textAlign: TextAlign.center,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                color: Colors.black,
+                                                height: 1.2,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                        ),
+                                      ),
                                     );
                                   }),
-                                  newHeading(
-                                    "Total\n(${assignCasMarks?.totalCasFullMarks ?? -1})",
+                                  // Total column - equivalent to FlexColumnWidth(3)
+                                  DataColumn2(
+                                    size: ColumnSize.M,
+                                    fixedWidth: 90,
+                                    label: Center(
+                                      child: Text(
+                                        "Total\n(${assignCasMarks?.totalCasFullMarks ?? -1})",
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(
+                                              color: Colors.black,
+                                              height: 1.2,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                                 rows: [
@@ -444,21 +524,30 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
                                     return DataRow(
                                       cells: [
                                         newBody(e.rollNo.toString()),
-                                        newBody(e.name.toString(),isStudentName: true),
+                                        newBody(e.name.toString(),
+                                            isStudentName: true),
                                         ...assignCasMarks!
-                                          .studentCasDetails[assignCasMarks!.studentCasDetails.indexOf(e)]
-                                          .casDetails
-                                          .map((e1) {
+                                            .studentCasDetails[assignCasMarks!
+                                                .studentCasDetails
+                                                .indexOf(e)]
+                                            .casDetails
+                                            .map((e1) {
                                           return marksField(
                                             e1.marks.toString(),
-                                            assignCasMarks!.studentCasDetails.indexOf(e),
-                                            assignCasMarks!.studentCasDetails[ assignCasMarks!.studentCasDetails.indexOf(e)]
-                                              .casDetails
-                                              .indexOf(e1),
+                                            assignCasMarks!.studentCasDetails
+                                                .indexOf(e),
+                                            assignCasMarks!
+                                                .studentCasDetails[
+                                                    assignCasMarks!
+                                                        .studentCasDetails
+                                                        .indexOf(e)]
+                                                .casDetails
+                                                .indexOf(e1),
                                             e1.fullMarks,
                                           );
                                         }),
-                                        newBody(e.totalCasMarks.toStringAsFixed(2))
+                                        newBody(
+                                            e.totalCasMarks.toStringAsFixed(2))
                                       ],
                                     );
                                   })
@@ -471,31 +560,32 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
           ),
         ),
         bottomNavigationBar: isLoading || error != ""
-          ? const SizedBox()
-          : KElevatedButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                for (int i = 0;
-                    i < assignCasMarks!.studentCasDetails.length;
-                    i++) {}
-                          
-                await setAssignedCasMarks();
-              } else {
-                CustomMethods().showSnackBar(
-                  context,
-                  "More or more field are have invalid entry",
-                  Colors.red,
-                );
-              }
-            },
-            label: "SUBMIT",
-          ),
+            ? const SizedBox()
+            : KElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    for (int i = 0;
+                        i < assignCasMarks!.studentCasDetails.length;
+                        i++) {}
+
+                    await setAssignedCasMarks();
+                  } else {
+                    CustomMethods().showSnackBar(
+                      context,
+                      "More or more field are have invalid entry",
+                      Colors.red,
+                    );
+                  }
+                },
+                label: "SUBMIT",
+              ),
       ),
     );
   }
 
-  newHeading(String body, {
-    bool isTotal = false, 
+  newHeading(
+    String body, {
+    bool isTotal = false,
     isStudentName = false,
     ColumnSize columnSize = ColumnSize.L,
     bool canOverflow = false,
@@ -510,11 +600,11 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
           maxLines: canOverflow ? 3 : 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-            color: Colors.black,
-            height: 1.2,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
+                color: Colors.black,
+                height: 1.2,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
         ),
       ),
     );
@@ -524,9 +614,7 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
     return DataCell(
       Container(
         decoration: BoxDecoration(
-          color: isTotal 
-            ? AppColors.mainColor.withOpacity(0.2) 
-            : null,
+          color: isTotal ? AppColors.mainColor.withOpacity(0.2) : null,
         ),
         alignment: isStudentName ? Alignment.centerLeft : Alignment.center,
         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -534,10 +622,10 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
           body,
           textAlign: isStudentName ? TextAlign.left : TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-            height: 1,
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+                height: 1,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
         ),
       ),
     );
@@ -549,25 +637,28 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
         alignment: Alignment.center,
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: originalValues['${assignCasMarks!.studentCasDetails[studentIndex].studentId}_${ assignCasMarks!.studentCasDetails[studentIndex].casDetails[subjectIndex].casDetailId}'] !=
-            assignCasMarks!.studentCasDetails[studentIndex].casDetails[subjectIndex].marks.toString()
-              ? AppColors.mainColor.withOpacity(0.4)
-              : null
-        ),
+            color: originalValues[
+                        '${assignCasMarks!.studentCasDetails[studentIndex].studentId}_${assignCasMarks!.studentCasDetails[studentIndex].casDetails[subjectIndex].casDetailId}'] !=
+                    assignCasMarks!.studentCasDetails[studentIndex]
+                        .casDetails[subjectIndex].marks
+                        .toString()
+                ? AppColors.mainColor.withOpacity(0.4)
+                : null),
         child: TextFormField(
           autovalidateMode: AutovalidateMode.onUserInteraction,
           initialValue: body == "null" ? "" : body,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
           decoration: const InputDecoration(
             border: InputBorder.none,
           ),
           onChanged: (value) {
             setState(() {
-              assignCasMarks!.studentCasDetails[studentIndex].casDetails[subjectIndex].marks = value;
+              assignCasMarks!.studentCasDetails[studentIndex]
+                  .casDetails[subjectIndex].marks = value;
             });
           },
           validator: (value) {
@@ -575,12 +666,12 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
               return null;
             } else {
               double marks = double.tryParse(value!) ?? -1;
-      
+
               if (marks == -1 || marks > fullMarks) {
                 return "Invalid";
               }
             }
-      
+
             return null;
           },
         ),
@@ -597,9 +688,9 @@ class _AssignCasMarksPageState extends State<AssignCasMarksPage> {
         initialValue: body,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-          color: AppColors.mainColor,
-          fontWeight: FontWeight.bold,
-        ),
+              color: AppColors.mainColor,
+              fontWeight: FontWeight.bold,
+            ),
         decoration: const InputDecoration(
           border: InputBorder.none,
         ),
@@ -667,12 +758,12 @@ class CASFilterDropdown extends StatelessWidget {
                             child: Text(
                               value,
                               style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -689,9 +780,9 @@ class CASFilterDropdown extends StatelessWidget {
                           e,
                           style:
                               Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ),
                     );
