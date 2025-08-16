@@ -131,33 +131,31 @@ class _SettingsPageState extends State<SettingsPage> {
                   // Show loading dialog
                   CustomMethods().loadingAlertDialog();
 
-                  // Start logout tasks but don't block navigation
-                  Future cleanupTask() async {
-                    try {
-                      await CustomMethods()
-                          .removeSubscriptionAndFirebaseToken()
-                          .timeout(Duration(seconds: 12), onTimeout: () {
+                  try {
+                    // Run cleanup but don't let it block too long
+                    await CustomMethods()
+                        .removeSubscriptionAndFirebaseToken()
+                        .timeout(
+                      const Duration(seconds: 12),
+                      onTimeout: () {
                         print("Firebase cleanup timed out, continuing logout");
                         return null;
-                      });
-                    } catch (e) {
-                      print("Firebase cleanup error: $e");
-                    }
+                      },
+                    );
+                  } catch (e) {
+                    print("Firebase cleanup error: $e");
                   }
 
-                  // Run cleanup in the background
-                  cleanupTask();
+                  // Clear local storage
+                  await LocalStorageMethods.removeUserDetails();
 
-                  // Clear local storage immediately
-                  LocalStorageMethods.removeUserDetails();
+                  // Close loading dialog before navigating
+                  if (Get.isDialogOpen ?? false) {
+                    Get.back();
+                  }
 
-                  // Navigate to login after a tiny delay to allow dialog to show
-                  Future.delayed(const Duration(milliseconds: 100), () {
-                    // Ensure UI updates happen on main thread
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Get.offAllNamed(AppPages.login);
-                    });
-                  });
+                  // Navigate to login
+                  Get.offAllNamed(AppPages.login);
                 },
                 "",
               ),

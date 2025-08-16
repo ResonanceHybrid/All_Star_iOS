@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:all_star_learning/Models/base_response_model.dart';
 import 'package:all_star_learning/Resources/api_methods.dart';
 import 'package:all_star_learning/Resources/student_api_methods.dart';
@@ -18,8 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../SelectSchool/search_school_data.dart';
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -35,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isObscure = false;
   final _formKey = GlobalKey<FormState>();
-  bool isRememberMe = true; // Default to true
+  bool isRememberMe = true;
   String? logo;
 
   @override
@@ -54,18 +52,19 @@ class _LoginPageState extends State<LoginPage> {
       DateTime currentTime = DateTime.now();
       Duration difference = currentTime.difference(loginDateTime);
 
-      // If more than 24 hours have passed, clear user data and redirect to login
-      if (difference.inHours >= 24) {
+      if (difference.inSeconds >= 24) {
         LocalStorageMethods.removeUserDetails();
         LocalStorageMethods.removeLoginTime();
-        // Optionally show a message about session timeout
+        LocalStorageMethods.removeCredentials();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Session expired. Please login again."),
               backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
             ),
           );
+          Get.offAllNamed(AppPages.login);
         });
       }
     }
@@ -230,42 +229,8 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: logo != null && logo!.isNotEmpty
-                              ? CachedNetworkImage(
-                                  imageUrl: logo!,
-                                  height: 100.sp,
-                                  width: 100.sp,
-                                  fit: BoxFit.contain,
-                                  placeholder: (context, url) => Container(
-                                    height: 100.sp,
-                                    width: 100.sp,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) {
-                                    // Silent fail — just show asset image
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.asset(
-                                        'assets/icons/Sanjeewani School.jpg',
-                                        height: 100.sp,
-                                        width: 100.sp,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    );
-                                  },
-                                  httpHeaders: const {
-                                    'User-Agent':
-                                        'Mozilla/5.0 (compatible; Flutter app)',
-                                  },
-                                )
-                              : ClipRRect(
+                          child: Platform.isIOS
+                              ? ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.asset(
                                     'assets/icons/Sanjeewani School.jpg',
@@ -273,7 +238,52 @@ class _LoginPageState extends State<LoginPage> {
                                     width: 100.sp,
                                     fit: BoxFit.contain,
                                   ),
-                                ),
+                                )
+                              : logo != null && logo!.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: logo!,
+                                      height: 100.sp,
+                                      width: 100.sp,
+                                      fit: BoxFit.contain,
+                                      placeholder: (context, url) => Container(
+                                        height: 100.sp,
+                                        width: 100.sp,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: const Center(
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) {
+                                        return ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.asset(
+                                            'assets/icons/Sanjeewani School.jpg',
+                                            height: 100.sp,
+                                            width: 100.sp,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        );
+                                      },
+                                      httpHeaders: const {
+                                        'User-Agent':
+                                            'Mozilla/5.0 (compatible; Flutter app)',
+                                      },
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.asset(
+                                        'assets/icons/Sanjeewani School.jpg',
+                                        height: 100.sp,
+                                        width: 100.sp,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
                         ),
                         TextFormFieldWidget(
                           label: Strings.email,

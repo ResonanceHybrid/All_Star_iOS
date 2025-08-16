@@ -893,7 +893,7 @@ class ApiMethods {
   }) async {
     try {
       final response = await dio.get(
-        'https://demo.allstarems.com/api/school/list',
+        'https://sanjeewani.allstarems.com/api/school/details',
         queryParameters: {
           'name': name,
           'page': page,
@@ -908,20 +908,49 @@ class ApiMethods {
         ),
       );
 
-      if (response.statusCode == 200) {
+      // Check for success based on the actual API response structure
+      if (response.statusCode == 200 && response.data['success'] == true) {
         return SuccessResponse(
-          message: "Schools fetched successfully",
-          data: response.data,
+          message: response.data['message'] ?? "Schools fetched successfully",
+          data: response
+              .data, // This will include both 'data' array and 'success' flag
         );
       } else {
         return ErrorResponse(
-          message: "Failed to fetch schools",
+          message: response.data['message'] ?? "Failed to fetch schools",
+        );
+      }
+    } on DioException catch (e) {
+      log('Dio Error searching schools: ${e.message}');
+
+      // Handle different types of Dio errors
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return ErrorResponse(
+          message: "Request timeout. Please check your connection.",
+        );
+      } else if (e.type == DioExceptionType.connectionError) {
+        return ErrorResponse(
+          message: "No internet connection. Please check your network.",
+        );
+      } else if (e.response?.statusCode == 404) {
+        return ErrorResponse(
+          message: "Schools not found.",
+        );
+      } else if (e.response?.statusCode == 500) {
+        return ErrorResponse(
+          message: "Server error. Please try again later.",
+        );
+      } else {
+        return ErrorResponse(
+          message: e.response?.data['message'] ?? "Network error occurred",
         );
       }
     } catch (e) {
-      log('Error searching schools: $e');
+      log('General Error searching schools: $e');
       return ErrorResponse(
-        message: "Network error occurred",
+        message: "An unexpected error occurred",
       );
     }
   }

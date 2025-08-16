@@ -73,22 +73,22 @@ class _MyAppState extends State<MyApp> {
 
   AppUpdateInfo? _updateInfo;
 
-  // Future<void> checkForUpdate() async {
-  //   // Only check for updates on Android
-  //   if (!Platform.isAndroid) return;
+  Future<void> checkForUpdate() async {
+    // Only check for updates on Android
+    if (!Platform.isAndroid) return;
 
-  //   try {
-  //     final info = await InAppUpdate.checkForUpdate();
-  //     _updateInfo = info;
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      _updateInfo = info;
 
-  //     if (_updateInfo?.updateAvailability ==
-  //         UpdateAvailability.updateAvailable) {
-  //       await InAppUpdate.performImmediateUpdate();
-  //     }
-  //   } catch (e) {
-  //     log('App update error: $e');
-  //   }
-  // }
+      if (_updateInfo?.updateAvailability ==
+          UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      log('App update error: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -103,11 +103,11 @@ class _MyAppState extends State<MyApp> {
     // Auto-select Sanjeewani School
     _autoSelectSanjeewaniSchool();
 
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   Future.delayed(const Duration(milliseconds: 500), () {
-    //     checkForUpdate();
-    //   });
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        checkForUpdate();
+      });
+    });
   }
 
   Future<void> _autoSelectSanjeewaniSchool() async {
@@ -115,25 +115,31 @@ class _MyAppState extends State<MyApp> {
       // Check if school is already selected
       final schoolDetails = LocalStorageMethods.getSchoolDetails();
 
-      if (schoolDetails == null || schoolDetails["logo"] == "") {
+      if (schoolDetails == null ||
+          schoolDetails["logo"] == null ||
+          schoolDetails["logo"] == "") {
         log('No school selected, auto-selecting Sanjeewani...');
 
         // Make API call to search for Sanjeewani school
-        // You'll need to implement this method in your ApiMethods class
         final response = await _searchSanjeewaniSchool();
 
         if (response != null) {
-          // Save Sanjeewani school details
+          // Save Sanjeewani school details with proper mapping
           await LocalStorageMethods.saveSchoolDetails(
-            response['domain_name'] ?? '',
+            'sanjeewani', // domain_name - you might need to adjust this
             response['logo'] ?? '',
-            response['name'] ?? '',
+            response['school_name'] ??
+                response['school_display_name'] ??
+                'Sanjeewani School',
           );
           log('Sanjeewani School auto-selected successfully');
         }
       }
 
-      // Determine initial route after school selection
+      // Check session timeout after school selection
+      _checkSessionTimeout();
+
+      // Determine initial route after school selection and session check
       setState(() {
         initialRoute = _getInitialRoute();
         isLoading = false;
@@ -147,18 +153,37 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  // Add session timeout check here
+  void _checkSessionTimeout() {
+    try {
+      var loginTime = LocalStorageMethods.getLoginTime();
+      if (loginTime != null) {
+        DateTime loginDateTime = DateTime.parse(loginTime);
+        DateTime currentTime = DateTime.now();
+        Duration difference = currentTime.difference(loginDateTime);
+
+        if (difference.inHours >= 24) {
+          log('Session expired, clearing user data');
+          LocalStorageMethods.removeUserDetails();
+          LocalStorageMethods.removeLoginTime();
+          LocalStorageMethods.removeCredentials();
+        }
+      }
+    } catch (e) {
+      log('Error checking session timeout: $e');
+    }
+  }
+
   Future<Map<String, dynamic>?> _searchSanjeewaniSchool() async {
     try {
-      // Based on your logs, make the API call to search for Sanjeewani
-      // You might need to create this method in ApiMethods or use existing one
       final response =
           await ApiMethods.searchSchools(name: "sanjeewani", page: 1);
 
-      if (response is SuccessResponse && response.data["data"] != null) {
+      if (response is SuccessResponse && response.data["success"] == true) {
         final schools = response.data["data"] as List;
         if (schools.isNotEmpty) {
-          // Return the first Sanjeewani school found
-          return schools.first;
+          // Return the first school found
+          return schools.first as Map<String, dynamic>;
         }
       }
     } catch (e) {
@@ -180,8 +205,14 @@ class _MyAppState extends State<MyApp> {
                 CircularProgressIndicator(
                   color: Colors.red,
                 ),
-                // SizedBox(height: 20),
-                // Text('Loading Sanjeewani School...'),
+                SizedBox(height: 20),
+                Text(
+                  'Loading Sanjeewani School...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
               ],
             ),
           ),
@@ -239,13 +270,17 @@ class _MyAppState extends State<MyApp> {
     final schoolDetails = LocalStorageMethods.getSchoolDetails();
     final userDetails = LocalStorageMethods.getUserDetails();
 
-    // Check school details
-    if (schoolDetails == null || schoolDetails["logo"] == "") {
+    // Check school details first
+    if (schoolDetails == null ||
+        schoolDetails["logo"] == null ||
+        schoolDetails["logo"] == "") {
       return AppPages.selectSchool;
     }
 
-    // Check user details
-    if (userDetails == null || userDetails["token"] == "") {
+    // Check user details and token validity
+    if (userDetails == null ||
+        userDetails["token"] == null ||
+        userDetails["token"] == "") {
       return AppPages.login;
     }
 
