@@ -197,6 +197,7 @@ class _MyAppState extends State<MyApp> {
     // Show loading screen while auto-selecting school
     if (isLoading) {
       return MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: Scaffold(
           body: Center(
             child: Column(

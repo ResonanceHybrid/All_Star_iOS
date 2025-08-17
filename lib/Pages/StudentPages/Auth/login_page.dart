@@ -52,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
       DateTime currentTime = DateTime.now();
       Duration difference = currentTime.difference(loginDateTime);
 
-      if (difference.inSeconds >= 24) {
+      if (difference.inHours >= 24) {
         LocalStorageMethods.removeUserDetails();
         LocalStorageMethods.removeLoginTime();
         LocalStorageMethods.removeCredentials();
