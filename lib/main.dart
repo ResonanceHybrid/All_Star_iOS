@@ -100,8 +100,8 @@ class _MyAppState extends State<MyApp> {
       DeviceOrientation.portraitDown,
     ]);
 
-    // Auto-select Sanjeewani School
-    _autoSelectSanjeewaniSchool();
+    // Auto-select Prarambha School
+    _autoSelectPrarambhaSchool();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -110,7 +110,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> _autoSelectSanjeewaniSchool() async {
+  Future<void> _autoSelectPrarambhaSchool() async {
     try {
       // Check if school is already selected
       final schoolDetails = LocalStorageMethods.getSchoolDetails();
@@ -118,21 +118,21 @@ class _MyAppState extends State<MyApp> {
       if (schoolDetails == null ||
           schoolDetails["logo"] == null ||
           schoolDetails["logo"] == "") {
-        log('No school selected, auto-selecting Sanjeewani...');
+        log('No school selected, auto-selecting Prarambha...');
 
-        // Make API call to search for Sanjeewani school
-        final response = await _searchSanjeewaniSchool();
+        // Make API call to search for Prarambha school
+        final response = await _searchPrarambhaSchool();
 
         if (response != null) {
-          // Save Sanjeewani school details with proper mapping
+          // Save Prarambha school details with proper mapping
           await LocalStorageMethods.saveSchoolDetails(
-            'sanjeewani', // domain_name - you might need to adjust this
+            'prarambha', // domain_name - you might need to adjust this
             response['logo'] ?? '',
             response['school_name'] ??
                 response['school_display_name'] ??
-                'Sanjeewani School',
+                'Prarambha Academy',
           );
-          log('Sanjeewani School auto-selected successfully');
+          log('Prarambha School auto-selected successfully');
         }
       }
 
@@ -145,7 +145,7 @@ class _MyAppState extends State<MyApp> {
         isLoading = false;
       });
     } catch (e) {
-      log('Error auto-selecting Sanjeewani: $e');
+      log('Error auto-selecting Prarambha: $e');
       setState(() {
         initialRoute = AppPages.selectSchool;
         isLoading = false;
@@ -174,10 +174,10 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<Map<String, dynamic>?> _searchSanjeewaniSchool() async {
+  Future<Map<String, dynamic>?> _searchPrarambhaSchool() async {
     try {
       final response =
-          await ApiMethods.searchSchools(name: "sanjeewani", page: 1);
+          await ApiMethods.searchSchools(name: "prarambha", page: 1);
 
       if (response is SuccessResponse && response.data["success"] == true) {
         final schools = response.data["data"] as List;
@@ -187,7 +187,7 @@ class _MyAppState extends State<MyApp> {
         }
       }
     } catch (e) {
-      log('Error searching for Sanjeewani school: $e');
+      log('Error searching for Prarambha school: $e');
     }
     return null;
   }
@@ -208,7 +208,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'Loading Sanjeewani School...',
+                  'Loading Prarambha School...',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -229,7 +229,7 @@ class _MyAppState extends State<MyApp> {
       rebuildFactor: (old, data) => true,
       builder: (context, widget) {
         return GetMaterialApp(
-          title: "Sanjeewani School",
+          title: "Prarambha Academy",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           builder: (context, widget) {

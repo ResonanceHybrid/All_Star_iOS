@@ -97,5 +97,5 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icons/Sanjeewani School.jpg"
+  image_path: "assets/icons/prarambha.jpg"
   remove_alpha_ios: true
