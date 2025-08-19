@@ -14,7 +14,7 @@ plugins {
 }
 
 android {
-    namespace = "com.allstar.sanjeewani_school"
+    namespace = "com.allstar.sanjeewanischool"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -37,7 +37,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.allstar.sanjeewani_school"
+        applicationId = "com.allstar.sanjeewanischool"
         minSdk = 23
         targetSdk = 34
         versionCode = flutter.versionCode
