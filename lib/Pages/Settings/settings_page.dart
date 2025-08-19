@@ -21,6 +21,8 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   CustomMethods cm = CustomMethods();
   bool notificationsEnabled = true;
+  bool _isLoggingOut = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,12 +128,29 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
               const SizedBox(height: 5),
-              widgetListTile(
-                "Logout",
-                kLogoutIcon,
-                () => _performLogout(),
-                "",
-              ),
+              if (_isLoggingOut)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 12),
+                      Text("Logging out...",
+                          style: Theme.of(context).textTheme.bodyLarge),
+                    ],
+                  ),
+                )
+              else
+                widgetListTile(
+                  "Logout",
+                  kLogoutIcon,
+                  () => _performLogout(),
+                  "",
+                ),
             ],
           ),
         ),
@@ -158,97 +177,55 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _performLogout() async {
-    bool isDialogShowing = false;
+    // Prevent multiple taps
+    if (_isLoggingOut) return;
+
+    setState(() {
+      _isLoggingOut = true;
+    });
 
     try {
-      // Show loading dialog
-      isDialogShowing = true;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return WillPopScope(
-            onWillPop: () async => false,
-            child: Theme(
-              data: Theme.of(context)
-                  .copyWith(dialogBackgroundColor: Theme.of(context).cardColor),
-              child: AlertDialog(
-                content: Row(
-                  children: [
-                    const CircularProgressIndicator(),
-                    SizedBox(width: 20.sp),
-                    const Text("Logging out..."),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-
-      // Remove local storage first (this should always work)
+      // Remove local data immediately
       LocalStorageMethods.removeUserDetails();
 
-      // Firebase cleanup with iOS-optimized timeout
-      try {
-        await _cleanupFirebaseWithTimeout();
-      } catch (e) {
-        print("Firebase cleanup failed but continuing logout: $e");
-      }
+      // Quick Firebase cleanup (background, don't wait)
+      _backgroundFirebaseCleanup();
 
-      // Ensure we're still mounted
-      if (!mounted) return;
-
-      // Close dialog safely
-      if (isDialogShowing && Navigator.canPop(context)) {
-        Navigator.of(context, rootNavigator: true).pop();
-        isDialogShowing = false;
-      }
-
-      // Small delay to ensure dialog is closed
-      await Future.delayed(Duration(milliseconds: 100));
+      // Small delay for UX
+      await Future.delayed(Duration(milliseconds: 800));
 
       // Navigate to login
       Get.offAllNamed(AppPages.login);
     } catch (e) {
-      print("Logout process failed: $e");
-
-      // Emergency cleanup - always try to close dialog and navigate
-      if (mounted) {
-        if (isDialogShowing && Navigator.canPop(context)) {
-          try {
-            Navigator.of(context, rootNavigator: true).pop();
-          } catch (popError) {
-            print("Failed to close dialog: $popError");
-          }
-        }
-
-        // Force navigation even if there were errors
-        Get.offAllNamed(AppPages.login);
-      }
+      print("Logout error: $e");
+      // Force navigation even on error
+      Get.offAllNamed(AppPages.login);
     }
   }
 
-// Firebase cleanup with strict timeout for iOS
-  Future<void> _cleanupFirebaseWithTimeout() async {
-    final userDetails = LocalStorageMethods.getUserDetails();
-    final schoolDetails = LocalStorageMethods.getSchoolDetails();
+// Background Firebase cleanup - doesn't block logout
+  void _backgroundFirebaseCleanup() async {
+    try {
+      final userDetails = LocalStorageMethods.getUserDetails();
+      final schoolDetails = LocalStorageMethods.getSchoolDetails();
 
-    if (userDetails == null || schoolDetails == null) {
-      return;
+      if (userDetails != null && schoolDetails != null) {
+        final topicName =
+            "${schoolDetails["domain_name"]}-${userDetails["data"]["role"]}";
+        final userId = userDetails["data"]["id"].toString();
+
+        // Run in background, don't await
+        FirebaseMessaging.instance
+            .unsubscribeFromTopic(topicName)
+            .timeout(Duration(seconds: 5))
+            .catchError((e) => print("Unsubscribe failed: $e"));
+
+        StudentApiMethods.uploadFCMToken(userId: userId, token: "")
+            .timeout(Duration(seconds: 5))
+            .catchError((e) => print("Token upload failed: $e"));
+      }
+    } catch (e) {
+      print("Background cleanup failed: $e");
     }
-
-    final topicName =
-        "${schoolDetails["domain_name"]}-${userDetails["data"]["role"]}";
-    final userId = userDetails["data"]["id"].toString();
-
-    // iOS-specific: Use shorter timeouts and fail fast
-    await Future.wait([
-      FirebaseMessaging.instance
-          .unsubscribeFromTopic(topicName)
-          .timeout(Duration(seconds: 2)),
-      StudentApiMethods.uploadFCMToken(userId: userId, token: "")
-          .timeout(Duration(seconds: 3)),
-    ]).timeout(Duration(seconds: 4)); // Very strict overall timeout for iOS
   }
 }
