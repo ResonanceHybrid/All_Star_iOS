@@ -185,47 +185,17 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     try {
-      // Remove local data immediately
+      // Only remove local data - NO Firebase operations
       LocalStorageMethods.removeUserDetails();
 
-      // Quick Firebase cleanup (background, don't wait)
-      _backgroundFirebaseCleanup();
+      // Minimal delay
+      await Future.delayed(Duration(milliseconds: 300));
 
-      // Small delay for UX
-      await Future.delayed(Duration(milliseconds: 800));
-
-      // Navigate to login
+      // Navigate immediately
       Get.offAllNamed(AppPages.login);
     } catch (e) {
       print("Logout error: $e");
-      // Force navigation even on error
       Get.offAllNamed(AppPages.login);
-    }
-  }
-
-// Background Firebase cleanup - doesn't block logout
-  void _backgroundFirebaseCleanup() async {
-    try {
-      final userDetails = LocalStorageMethods.getUserDetails();
-      final schoolDetails = LocalStorageMethods.getSchoolDetails();
-
-      if (userDetails != null && schoolDetails != null) {
-        final topicName =
-            "${schoolDetails["domain_name"]}-${userDetails["data"]["role"]}";
-        final userId = userDetails["data"]["id"].toString();
-
-        // Run in background, don't await
-        FirebaseMessaging.instance
-            .unsubscribeFromTopic(topicName)
-            .timeout(Duration(seconds: 5))
-            .catchError((e) => print("Unsubscribe failed: $e"));
-
-        StudentApiMethods.uploadFCMToken(userId: userId, token: "")
-            .timeout(Duration(seconds: 5))
-            .catchError((e) => print("Token upload failed: $e"));
-      }
-    } catch (e) {
-      print("Background cleanup failed: $e");
     }
   }
 }
