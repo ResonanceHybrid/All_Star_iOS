@@ -97,5 +97,5 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icons/prarambha.jpg"
+  image_path: "assets/icons/risingstar.png"
   remove_alpha_ios: true
