@@ -1,8 +1,8 @@
+import 'package:all_star_learning/Utils/custom_methods.dart';
 import 'package:all_star_learning/Utils/local_storage.dart';
 import 'package:all_star_learning/config/theme/app_static_colors.dart';
 import 'package:all_star_learning/config/theme/my_theme.dart';
 import 'package:all_star_learning/routes/app_pages.dart';
-import 'package:all_star_learning/utils/custom_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -128,31 +128,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 "Logout",
                 kLogoutIcon,
                 () async {
-                  try {
-                    CustomMethods().loadingAlertDialog();
-
-                    // Firebase cleanup with timeout - don't let it block logout
-                    await CustomMethods()
-                        .removeSubscriptionAndFirebaseToken()
-                        .timeout(Duration(seconds: 12))
-                        .catchError((error) {
-                      print(
-                          "Firebase cleanup error (continuing logout): $error");
-                      return null; // Continue with logout even if this fails
-                    });
-
-                    // Always clear local storage
-                    LocalStorageMethods.removeUserDetails();
-
-                    // Navigate to login
-                    Get.offAllNamed(AppPages.login);
-                  } catch (e) {
-                    // Fallback: if anything fails, still logout
-                    print("Logout error: $e");
-                    Get.back(); // Close loading dialog
-                    LocalStorageMethods.removeUserDetails();
-                    Get.offAllNamed(AppPages.login);
-                  }
+                  CustomMethods().loadingAlertDialog();
+                  await CustomMethods().removeSubscriptionAndFirebaseToken();
+                  LocalStorageMethods.removeUserDetails();
+                  Get.offAllNamed(AppPages.login);
                 },
                 "",
               ),
