@@ -1,4 +1,4 @@
-package com.allstar.prarambha_academy
+package com.allstar.prarambhaschool
 
 import io.flutter.embedding.android.FlutterActivity
 
