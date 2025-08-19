@@ -14,7 +14,7 @@ plugins {
 }
 
 android {
-    namespace = "com.allstar.prarambha_academy"
+    namespace = "com.allstar.risingstar"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -37,7 +37,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.allstar.prarambha_academy"
+        applicationId = "com.allstar.risingstar"
         minSdk = 23
         targetSdk = 34
         versionCode = flutter.versionCode
