@@ -100,8 +100,8 @@ class _MyAppState extends State<MyApp> {
       DeviceOrientation.portraitDown,
     ]);
 
-    // Auto-select Prarambha School
-    _autoSelectPrarambhaSchool();
+    // Auto-select Rising School
+    _autoSelectRisingSchool();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -110,7 +110,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> _autoSelectPrarambhaSchool() async {
+  Future<void> _autoSelectRisingSchool() async {
     try {
       // Check if school is already selected
       final schoolDetails = LocalStorageMethods.getSchoolDetails();
@@ -118,21 +118,21 @@ class _MyAppState extends State<MyApp> {
       if (schoolDetails == null ||
           schoolDetails["logo"] == null ||
           schoolDetails["logo"] == "") {
-        log('No school selected, auto-selecting Prarambha...');
+        log('No school selected, auto-selecting Rising...');
 
-        // Make API call to search for Prarambha school
-        final response = await _searchPrarambhaSchool();
+        // Make API call to search for Rising school
+        final response = await _searchRisingSchool();
 
         if (response != null) {
-          // Save Prarambha school details with proper mapping
+          // Save Rising school details with proper mapping
           await LocalStorageMethods.saveSchoolDetails(
-            'prarambha', // domain_name - you might need to adjust this
+            'rising', // domain_name - you might need to adjust this
             response['logo'] ?? '',
             response['school_name'] ??
                 response['school_display_name'] ??
-                'Prarambha Academy',
+                'Rising Star',
           );
-          log('Prarambha School auto-selected successfully');
+          log('Rising School auto-selected successfully');
         }
       }
 
@@ -145,7 +145,7 @@ class _MyAppState extends State<MyApp> {
         isLoading = false;
       });
     } catch (e) {
-      log('Error auto-selecting Prarambha: $e');
+      log('Error auto-selecting Rising: $e');
       setState(() {
         initialRoute = AppPages.selectSchool;
         isLoading = false;
@@ -174,10 +174,9 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<Map<String, dynamic>?> _searchPrarambhaSchool() async {
+  Future<Map<String, dynamic>?> _searchRisingSchool() async {
     try {
-      final response =
-          await ApiMethods.searchSchools(name: "prarambha", page: 1);
+      final response = await ApiMethods.searchSchools(name: "rising", page: 1);
 
       if (response is SuccessResponse && response.data["success"] == true) {
         final schools = response.data["data"] as List;
@@ -187,7 +186,7 @@ class _MyAppState extends State<MyApp> {
         }
       }
     } catch (e) {
-      log('Error searching for Prarambha school: $e');
+      log('Error searching for Rising school: $e');
     }
     return null;
   }
@@ -208,7 +207,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'Loading Prarambha School...',
+                  'Loading Rising School...',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -229,7 +228,7 @@ class _MyAppState extends State<MyApp> {
       rebuildFactor: (old, data) => true,
       builder: (context, widget) {
         return GetMaterialApp(
-          title: "Prarambha Academy",
+          title: "Rising Star",
           useInheritedMediaQuery: true,
           debugShowCheckedModeBanner: false,
           builder: (context, widget) {

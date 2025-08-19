@@ -893,7 +893,7 @@ class ApiMethods {
   }) async {
     try {
       final response = await dio.get(
-        'https://prarambha.allstarems.com/api/school/details',
+        'https://risingstar.allstarems.com/api/school/details',
         queryParameters: {
           'name': name,
           'page': page,

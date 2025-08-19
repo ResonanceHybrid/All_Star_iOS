@@ -233,7 +233,7 @@ class _LoginPageState extends State<LoginPage> {
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.asset(
-                                    'assets/icons/prarambha.jpg',
+                                    'assets/icons/risingstar.png',
                                     height: 100.sp,
                                     width: 100.sp,
                                     fit: BoxFit.contain,
@@ -263,7 +263,7 @@ class _LoginPageState extends State<LoginPage> {
                                           borderRadius:
                                               BorderRadius.circular(8),
                                           child: Image.asset(
-                                            'assets/icons/prarambha.jpg',
+                                            'assets/icons/risingstar.png',
                                             height: 100.sp,
                                             width: 100.sp,
                                             fit: BoxFit.contain,
@@ -278,7 +278,7 @@ class _LoginPageState extends State<LoginPage> {
                                   : ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image.asset(
-                                        'assets/icons/prarambha.jpg',
+                                        'assets/icons/risingstar.png',
                                         height: 100.sp,
                                         width: 100.sp,
                                         fit: BoxFit.contain,
