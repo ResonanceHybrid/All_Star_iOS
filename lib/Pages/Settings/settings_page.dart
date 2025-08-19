@@ -1,8 +1,8 @@
+import 'package:all_star_learning/Utils/custom_methods.dart';
 import 'package:all_star_learning/Utils/local_storage.dart';
 import 'package:all_star_learning/config/theme/app_static_colors.dart';
 import 'package:all_star_learning/config/theme/my_theme.dart';
 import 'package:all_star_learning/routes/app_pages.dart';
-import 'package:all_star_learning/utils/custom_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -19,7 +19,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   CustomMethods cm = CustomMethods();
   bool notificationsEnabled = true;
-  bool _isLoggingOut = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,7 +128,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 "Logout",
                 kLogoutIcon,
                 () async {
-                  _performLogout();
+                  CustomMethods().loadingAlertDialog();
+                  await CustomMethods().removeSubscriptionAndFirebaseToken();
+                  LocalStorageMethods.removeUserDetails();
+                  Get.offAllNamed(AppPages.login);
                 },
                 "",
               ),
@@ -138,91 +140,6 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
-  }
-
-  void _performLogout() async {
-    // Prevent multiple logout calls
-    if (_isLoggingOut) return;
-    _isLoggingOut = true;
-
-    // Show loading dialog
-    CustomMethods().loadingAlertDialog();
-
-    try {
-      // 1. Clear all local storage data (most critical)
-      await LocalStorageMethods.removeUserDetails();
-      await LocalStorageMethods.removeLoginTime(); // Clear login time
-      await LocalStorageMethods.removeCredentials(); // Clear saved credentials
-
-      // 2. Start Firebase cleanup in background (non-blocking)
-      _performFirebaseCleanup();
-
-      // 3. Brief delay for visual feedback
-      await Future.delayed(const Duration(milliseconds: 200));
-    } catch (e) {
-      print("Logout error: $e");
-    } finally {
-      // 4. Always ensure dialog is closed
-      _closeLoadingDialog();
-
-      // 5. Navigate to login with safety measures
-      await _safeNavigateToLogin();
-
-      _isLoggingOut = false;
-    }
-  }
-
-  void _closeLoadingDialog() {
-    try {
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
-      }
-    } catch (e) {
-      print("Error closing dialog: $e");
-      // Try alternative dialog closing
-      try {
-        Navigator.of(context, rootNavigator: true).pop();
-      } catch (e2) {
-        print("Alternative dialog close failed: $e2");
-      }
-    }
-  }
-
-  Future<void> _safeNavigateToLogin() async {
-    try {
-      // Clear any existing routes and navigate to login
-      Get.offAllNamed(AppPages.login);
-    } catch (e) {
-      print("Primary navigation failed: $e");
-
-      // Fallback navigation
-      try {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppPages.login,
-              (route) => false,
-            );
-          }
-        });
-      } catch (e2) {
-        print("Fallback navigation failed: $e2");
-      }
-    }
-  }
-
-  void _performFirebaseCleanup() {
-    // Run Firebase cleanup in background without awaiting
-    CustomMethods().removeSubscriptionAndFirebaseToken().timeout(
-      const Duration(seconds: 8),
-      onTimeout: () {
-        print("Firebase cleanup timed out - continuing in background");
-        return null;
-      },
-    ).catchError((error) {
-      print("Firebase cleanup error: $error");
-      // Error is logged but doesn't affect logout flow
-    });
   }
 
   widgetListTile(String title, String icon, Function()? onTap, String? subTitle,
