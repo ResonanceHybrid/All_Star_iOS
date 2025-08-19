@@ -1,8 +1,10 @@
+import 'package:all_star_learning/Resources/student_api_methods.dart';
 import 'package:all_star_learning/Utils/custom_methods.dart';
 import 'package:all_star_learning/Utils/local_storage.dart';
 import 'package:all_star_learning/config/theme/app_static_colors.dart';
 import 'package:all_star_learning/config/theme/my_theme.dart';
 import 'package:all_star_learning/routes/app_pages.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -127,12 +129,7 @@ class _SettingsPageState extends State<SettingsPage> {
               widgetListTile(
                 "Logout",
                 kLogoutIcon,
-                () async {
-                  CustomMethods().loadingAlertDialog();
-                  await CustomMethods().removeSubscriptionAndFirebaseToken();
-                  LocalStorageMethods.removeUserDetails();
-                  Get.offAllNamed(AppPages.login);
-                },
+                () => _performLogout(),
                 "",
               ),
             ],
@@ -158,5 +155,100 @@ class _SettingsPageState extends State<SettingsPage> {
             size: 16.sp,
           ),
     );
+  }
+
+  Future<void> _performLogout() async {
+    bool isDialogShowing = false;
+
+    try {
+      // Show loading dialog
+      isDialogShowing = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: Theme(
+              data: Theme.of(context)
+                  .copyWith(dialogBackgroundColor: Theme.of(context).cardColor),
+              child: AlertDialog(
+                content: Row(
+                  children: [
+                    const CircularProgressIndicator(),
+                    SizedBox(width: 20.sp),
+                    const Text("Logging out..."),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      // Remove local storage first (this should always work)
+      LocalStorageMethods.removeUserDetails();
+
+      // Firebase cleanup with iOS-optimized timeout
+      try {
+        await _cleanupFirebaseWithTimeout();
+      } catch (e) {
+        print("Firebase cleanup failed but continuing logout: $e");
+      }
+
+      // Ensure we're still mounted
+      if (!mounted) return;
+
+      // Close dialog safely
+      if (isDialogShowing && Navigator.canPop(context)) {
+        Navigator.of(context, rootNavigator: true).pop();
+        isDialogShowing = false;
+      }
+
+      // Small delay to ensure dialog is closed
+      await Future.delayed(Duration(milliseconds: 100));
+
+      // Navigate to login
+      Get.offAllNamed(AppPages.login);
+    } catch (e) {
+      print("Logout process failed: $e");
+
+      // Emergency cleanup - always try to close dialog and navigate
+      if (mounted) {
+        if (isDialogShowing && Navigator.canPop(context)) {
+          try {
+            Navigator.of(context, rootNavigator: true).pop();
+          } catch (popError) {
+            print("Failed to close dialog: $popError");
+          }
+        }
+
+        // Force navigation even if there were errors
+        Get.offAllNamed(AppPages.login);
+      }
+    }
+  }
+
+// Firebase cleanup with strict timeout for iOS
+  Future<void> _cleanupFirebaseWithTimeout() async {
+    final userDetails = LocalStorageMethods.getUserDetails();
+    final schoolDetails = LocalStorageMethods.getSchoolDetails();
+
+    if (userDetails == null || schoolDetails == null) {
+      return;
+    }
+
+    final topicName =
+        "${schoolDetails["domain_name"]}-${userDetails["data"]["role"]}";
+    final userId = userDetails["data"]["id"].toString();
+
+    // iOS-specific: Use shorter timeouts and fail fast
+    await Future.wait([
+      FirebaseMessaging.instance
+          .unsubscribeFromTopic(topicName)
+          .timeout(Duration(seconds: 2)),
+      StudentApiMethods.uploadFCMToken(userId: userId, token: "")
+          .timeout(Duration(seconds: 3)),
+    ]).timeout(Duration(seconds: 4)); // Very strict overall timeout for iOS
   }
 }
