@@ -127,34 +127,10 @@ class _SettingsPageState extends State<SettingsPage> {
               widgetListTile(
                 "Logout",
                 kLogoutIcon,
-                () async {
-                  // Show loading dialog
-                  CustomMethods().loadingAlertDialog();
-
-                  try {
-                    // Run cleanup but don't let it block too long
-                    await CustomMethods()
-                        .removeSubscriptionAndFirebaseToken()
-                        .timeout(
-                      const Duration(seconds: 12),
-                      onTimeout: () {
-                        print("Firebase cleanup timed out, continuing logout");
-                        return null;
-                      },
-                    );
-                  } catch (e) {
-                    print("Firebase cleanup error: $e");
-                  }
-
-                  // Clear local storage
-                  await LocalStorageMethods.removeUserDetails();
-
-                  // Close loading dialog before navigating
-                  if (Get.isDialogOpen ?? false) {
-                    Get.back();
-                  }
-
-                  // Navigate to login
+                () {
+                  // Remove local data
+                  LocalStorageMethods.removeUserDetails();
+                  // Go to login screen
                   Get.offAllNamed(AppPages.login);
                 },
                 "",
