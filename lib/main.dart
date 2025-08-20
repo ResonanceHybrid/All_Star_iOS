@@ -126,7 +126,7 @@ class _MyAppState extends State<MyApp> {
         if (response != null) {
           // Save Rising school details with proper mapping
           await LocalStorageMethods.saveSchoolDetails(
-            'rising', // domain_name - you might need to adjust this
+            'risingstar', // domain_name - you might need to adjust this
             response['logo'] ?? '',
             response['school_name'] ??
                 response['school_display_name'] ??
