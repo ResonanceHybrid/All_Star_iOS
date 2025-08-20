@@ -1,8 +1,8 @@
-import 'package:all_star_learning/Utils/custom_methods.dart';
 import 'package:all_star_learning/Utils/local_storage.dart';
 import 'package:all_star_learning/config/theme/app_static_colors.dart';
 import 'package:all_star_learning/config/theme/my_theme.dart';
 import 'package:all_star_learning/routes/app_pages.dart';
+import 'package:all_star_learning/utils/custom_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -127,10 +127,10 @@ class _SettingsPageState extends State<SettingsPage> {
               widgetListTile(
                 "Logout",
                 kLogoutIcon,
-                () async {
-                  CustomMethods().loadingAlertDialog();
-                  await CustomMethods().removeSubscriptionAndFirebaseToken();
+                () {
+                  // Remove local data
                   LocalStorageMethods.removeUserDetails();
+                  // Go to login screen
                   Get.offAllNamed(AppPages.login);
                 },
                 "",
