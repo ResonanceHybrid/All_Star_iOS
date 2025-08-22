@@ -68,19 +68,19 @@ class _TeacherNavigationPageState extends State<TeacherNavigationPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvoked: (bool hasPopped) async {
-        final timegap = DateTime.now().difference(preBackPress);
-        final cantExit = timegap >= const Duration(seconds: 2);
-        preBackPress = DateTime.now();
-        if (cantExit) {
-          //show snackbar
-          cm.showSnackBar(context, "Swipe back again to exit", Colors.red);
-          return;
-        } else {
-          Navigator.pop(context);
-        }
-      },
+      // canPop: false,
+      // onPopInvoked: (bool hasPopped) async {
+      //   final timegap = DateTime.now().difference(preBackPress);
+      //   final cantExit = timegap >= const Duration(seconds: 2);
+      //   preBackPress = DateTime.now();
+      //   if (cantExit) {
+      //     //show snackbar
+      //     cm.showSnackBar(context, "Swipe back again to exit", Colors.red);
+      //     return;
+      //   } else {
+      //     Navigator.pop(context);
+      //   }
+      // },
       child: Scaffold(
         body: Center(child: pages.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomAppBar(

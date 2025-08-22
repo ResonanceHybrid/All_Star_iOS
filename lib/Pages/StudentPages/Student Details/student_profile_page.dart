@@ -265,7 +265,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
               Align(
                 alignment: Alignment.topCenter,
                 child: GestureDetector(
-                  //onTap: _showImagePickerDialog,
+                  onTap: _showImagePickerDialog,
                   child: _image != null
                       ? CircleAvatar(
                           radius: 45,
@@ -291,25 +291,25 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                                 },
                               ),
                             ),
-                            // Positioned(
-                            //   top: 0,
-                            //   right: 0,
-                            //   child: Container(
-                            //     height: 30,
-                            //     width: 30,
-                            //     decoration: BoxDecoration(
-                            //       color: Theme.of(context).cardColor,
-                            //       shape: BoxShape.circle,
-                            //     ),
-                            //     child: const Center(
-                            //       child: Icon(
-                            //         Icons.edit,
-                            //         color: AppColors.mainColor,
-                            //         size: 15,
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Container(
+                                height: 30,
+                                width: 30,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: AppColors.mainColor,
+                                    size: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                 ),

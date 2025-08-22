@@ -45,6 +45,17 @@ class _HomeworkPageState extends State<HomeworkPage> {
     }
   }
 
+  // Function to handle refresh - updates both homework data and user details
+  Future<void> _onRefresh() async {
+    // Refresh homework data
+    await getHomework();
+
+    // Also refresh user details to get latest is_homework_image_enabled value
+    if (mounted) {
+      BlocProvider.of<HomeContainerCubit>(context).getUserDetails();
+    }
+  }
+
   String errorMessage = "";
   StudentHomeworkModel? homeworkListModel;
   List<StudentHomework> homeworkList = [];
@@ -66,39 +77,42 @@ class _HomeworkPageState extends State<HomeworkPage> {
         context,
         title: "Homework",
       ),
-      body: Stack(
-        children: [
-          isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.mainColor,
-                  ),
-                )
-              : errorMessage != ""
-                  ? Center(
-                      child: Text(errorMessage),
-                    )
-                  : homeworkList.isEmpty
-                      ? const Center(
-                          child: Text('Homework not available.'),
-                        )
-                      : ListView(
-                          children: [
-                            ListView.builder(
-                              itemCount: homeworkList.length,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                StudentHomework useData = homeworkList[index];
-                                return StudentHomeworkListCard(
-                                  item: useData,
-                                  uploadModel: uploadModel,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: _onRefresh, // Add refresh functionality
+        child: Stack(
+          children: [
+            isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.mainColor,
+                    ),
+                  )
+                : errorMessage != ""
+                    ? Center(
+                        child: Text(errorMessage),
+                      )
+                    : homeworkList.isEmpty
+                        ? const Center(
+                            child: Text('Homework not available.'),
+                          )
+                        : ListView(
+                            children: [
+                              ListView.builder(
+                                itemCount: homeworkList.length,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  StudentHomework useData = homeworkList[index];
+                                  return StudentHomeworkListCard(
+                                    item: useData,
+                                    uploadModel: uploadModel,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+          ],
+        ),
       ),
     );
   }
@@ -113,6 +127,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
       imageList.clear();
       Navigator.pop(context);
       cm.showSnackBar(context, "Homework submitted successfully", Colors.green);
+
+      // Refresh homework list after successful submission
+      await _onRefresh();
     } else if (data is ErrorResponse) {
       if (!mounted) return;
       Navigator.pop(context);
@@ -215,7 +232,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                               ),
                                               child: IconButton(
                                                 onPressed: () {
-                                                  imageList.removeAt(0);
+                                                  imageList.removeAt(
+                                                      imageList.indexOf(e));
                                                   setState(() {});
                                                 },
                                                 icon: const Icon(

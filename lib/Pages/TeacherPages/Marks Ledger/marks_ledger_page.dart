@@ -36,11 +36,11 @@ class _MarksLedgerPageState extends State<MarksLedgerPage> {
   String htmlResponse = '';
   bool isLoading = false;
   String error = '';
+  InAppWebViewController? webViewController;
 
   @override
   void initState() {
     super.initState();
-
     getMarksLedger();
   }
 
@@ -63,7 +63,8 @@ class _MarksLedgerPageState extends State<MarksLedgerPage> {
     );
     if (response is SuccessResponse) {
       setState(() {
-        htmlResponse = response.data;
+        // Wrap the HTML response to prevent PDF behaviors
+        htmlResponse = _wrapHtmlContent(response.data);
       });
     } else {
       // Handle error
@@ -71,6 +72,95 @@ class _MarksLedgerPageState extends State<MarksLedgerPage> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  String _wrapHtmlContent(String originalHtml) {
+    return '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style>
+        body { 
+            margin: 0; 
+            padding: 10px; 
+            font-family: Arial, sans-serif; 
+            background: white;
+            overflow-x: auto;
+        }
+        * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+        @media print { 
+            * { 
+                display: none !important; 
+            } 
+        }
+        /* Prevent any PDF-like styling */
+        embed, object, iframe[src*=".pdf"] {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    $originalHtml
+    <script>
+        // Comprehensive PDF prevention
+        (function() {
+            // Disable all print functions
+            window.print = function() { 
+                console.log('Print disabled'); 
+                return false; 
+            };
+            
+            // Override PDF viewer
+            if (typeof PDFViewerApplication !== 'undefined') {
+                PDFViewerApplication = null;
+            }
+            
+            // Prevent print events
+            window.addEventListener('beforeprint', function(e) { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                return false; 
+            }, true);
+            
+            window.addEventListener('afterprint', function(e) { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                return false; 
+            }, true);
+            
+            // Disable keyboard shortcuts that might trigger print
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.keyCode === 80) { // Ctrl+P or Cmd+P
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }, true);
+            
+            // Remove any PDF-related elements
+            document.addEventListener('DOMContentLoaded', function() {
+                var pdfElements = document.querySelectorAll('embed[type="application/pdf"], object[type="application/pdf"], iframe[src*=".pdf"]');
+                pdfElements.forEach(function(element) {
+                    element.remove();
+                });
+            });
+            
+            // Force content type
+            if (document.contentType && document.contentType.includes('pdf')) {
+                document.contentType = 'text/html';
+            }
+        })();
+    </script>
+</body>
+</html>
+    ''';
   }
 
   CustomMethods cm = CustomMethods();
@@ -94,9 +184,9 @@ class _MarksLedgerPageState extends State<MarksLedgerPage> {
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
+                        .textTheme
+                        .titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
@@ -106,31 +196,33 @@ class _MarksLedgerPageState extends State<MarksLedgerPage> {
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
+                        .textTheme
+                        .titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text(widget.sectionName ?? "N/A",
+                  child: Text(
+                    widget.sectionName ?? "N/A",
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
+                        .textTheme
+                        .titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text(widget.examName ?? "N/A",
+                  child: Text(
+                    widget.examName ?? "N/A",
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
+                        .textTheme
+                        .titleLarge!
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -148,14 +240,69 @@ class _MarksLedgerPageState extends State<MarksLedgerPage> {
                     : Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: InAppWebView(
+                          key: ValueKey(htmlResponse
+                              .hashCode), // Force rebuild when content changes
                           initialData: InAppWebViewInitialData(
                             data: htmlResponse,
+                            mimeType: 'text/html',
+                            encoding: 'utf8',
                           ),
                           initialOptions: InAppWebViewGroupOptions(
-                            crossPlatform: InAppWebViewOptions(),
+                            crossPlatform: InAppWebViewOptions(
+                              useShouldOverrideUrlLoading: true,
+                              useOnLoadResource: true,
+                              javaScriptEnabled: true,
+                              mediaPlaybackRequiresUserGesture: false,
+                              // Prevent default behaviors that might trigger PDF viewer
+                              supportZoom: false,
+                              transparentBackground: true,
+                            ),
+                            android: AndroidInAppWebViewOptions(
+                              // Disable built-in zoom controls
+                              builtInZoomControls: false,
+                              displayZoomControls: false,
+                              // Force HTML rendering
+                              loadWithOverviewMode: true,
+                              useWideViewPort: true,
+                              // Disable default error page
+                              disableDefaultErrorPage: true,
+                            ),
+                            ios: IOSInAppWebViewOptions(
+                              // Disable data detector types that might interfere
+                              dataDetectorTypes: [],
+                              // Disable automatic detection
+                              suppressesIncrementalRendering: false,
+                            ),
                           ),
                           onWebViewCreated:
-                              (InAppWebViewController controller) {},
+                              (InAppWebViewController controller) {
+                            webViewController = controller;
+                          },
+                          onLoadStop: (controller, url) async {
+                            // Additional safety measures after page load
+                            await controller.evaluateJavascript(source: """
+                              // Double-check print prevention
+                              window.print = function() { return false; };
+                              
+                              // Hide any PDF viewer UI elements
+                              var toolbars = document.querySelectorAll('[class*="toolbar"], [id*="toolbar"], [class*="viewer"], [id*="viewer"]');
+                              toolbars.forEach(function(toolbar) {
+                                if (toolbar.textContent.toLowerCase().includes('print') || 
+                                    toolbar.textContent.toLowerCase().includes('pdf')) {
+                                  toolbar.style.display = 'none';
+                                }
+                              });
+                            """);
+                          },
+                          shouldOverrideUrlLoading:
+                              (controller, navigationAction) async {
+                            // Prevent navigation that might trigger PDF viewer
+                            final url = navigationAction.request.url.toString();
+                            if (url.contains('.pdf') || url.contains('pdf')) {
+                              return NavigationActionPolicy.CANCEL;
+                            }
+                            return NavigationActionPolicy.ALLOW;
+                          },
                         ),
                       ),
           ),
