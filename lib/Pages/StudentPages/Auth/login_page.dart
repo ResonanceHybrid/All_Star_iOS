@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:all_star_learning/Models/base_response_model.dart';
 import 'package:all_star_learning/Resources/api_methods.dart';
 import 'package:all_star_learning/Resources/student_api_methods.dart';
@@ -35,14 +35,41 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isObscure = false;
   final _formKey = GlobalKey<FormState>();
-  bool isRememberMe = false;
+  bool isRememberMe = true;
   String? logo;
 
   @override
   void initState() {
     super.initState();
+    checkSessionTimeout();
     getSchoolLogoAndName();
     getCredential();
+  }
+
+  // Check if session has expired (24 hours)
+  void checkSessionTimeout() {
+    var loginTime = LocalStorageMethods.getLoginTime();
+    if (loginTime != null) {
+      DateTime loginDateTime = DateTime.parse(loginTime);
+      DateTime currentTime = DateTime.now();
+      Duration difference = currentTime.difference(loginDateTime);
+
+      if (difference.inHours >= 24) {
+        LocalStorageMethods.removeUserDetails();
+        LocalStorageMethods.removeLoginTime();
+        LocalStorageMethods.removeCredentials();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Session expired. Please login again."),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Get.offAllNamed(AppPages.login);
+        });
+      }
+    }
   }
 
   getSchoolLogoAndName() {
@@ -75,6 +102,20 @@ class _LoginPageState extends State<LoginPage> {
       LocalStorageMethods.saveUserDetails(
         response.data,
       );
+
+      // Save login time for session management
+      LocalStorageMethods.saveLoginTime(DateTime.now().toIso8601String());
+
+      // Save credentials if remember me is checked
+      if (isRememberMe) {
+        LocalStorageMethods.saveCredentials(
+          isRememberMe,
+          emailController.text,
+          passwordController.text,
+        );
+      } else {
+        LocalStorageMethods.removeCredentials();
+      }
 
       if (response.data["data"]["role"] != null) {
         if (response.data["data"]["role"] == "student") {
@@ -234,15 +275,8 @@ class _LoginPageState extends State<LoginPage> {
                                   setState(() {
                                     isRememberMe = value!;
                                   });
-                                  if (isRememberMe) {
-                                    LocalStorageMethods.saveCredentials(
-                                      isRememberMe,
-                                      emailController.text,
-                                      passwordController.text,
-                                    );
-                                  } else {
-                                    LocalStorageMethods.removeCredentials();
-                                  }
+                                  // Don't save/remove credentials here anymore
+                                  // Will be handled during login
                                 },
                                 child: Text(
                                   "Remember me",
