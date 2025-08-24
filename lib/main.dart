@@ -126,7 +126,7 @@ class _MyAppState extends State<MyApp> {
         if (response != null) {
           // Save Rising school details with proper mapping
           await LocalStorageMethods.saveSchoolDetails(
-            'rising', // domain_name - you might need to adjust this
+            'risingstar', // domain_name - you might need to adjust this
             response['logo'] ?? '',
             response['school_name'] ??
                 response['school_display_name'] ??
@@ -176,7 +176,8 @@ class _MyAppState extends State<MyApp> {
 
   Future<Map<String, dynamic>?> _searchRisingSchool() async {
     try {
-      final response = await ApiMethods.searchSchools(name: "rising", page: 1);
+      final response =
+          await ApiMethods.searchSchools(name: "risingstar", page: 1);
 
       if (response is SuccessResponse && response.data["success"] == true) {
         final schools = response.data["data"] as List;
