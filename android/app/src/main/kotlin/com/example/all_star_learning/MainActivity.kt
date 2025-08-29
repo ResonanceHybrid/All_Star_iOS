@@ -1,4 +1,4 @@
-package com.example.all_star_learning
+package com.example.allStarLearning
 
 import io.flutter.embedding.android.FlutterActivity
 
