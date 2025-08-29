@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:in_app_update/in_app_update.dart';
 import 'config/theme/my_theme.dart';
 import 'config/translations/localization_service.dart';
 
