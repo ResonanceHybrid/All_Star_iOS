@@ -120,14 +120,12 @@ class _MyAppState extends State<MyApp> {
             bool themeIsLight = LocalStorageMethods.getThemeIsLight();
             return Theme(
               data: MyTheme.getThemeData(isLight: themeIsLight).copyWith(
-                // Reduce animation-related conflicts
                 pageTransitionsTheme: const PageTransitionsTheme(
                   builders: {
                     TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
                     TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
                   },
                 ),
-                // Reduce splash effects that might cause animation conflicts
                 splashFactory: InkSplash.splashFactory,
                 materialTapTargetSize: MaterialTapTargetSize.padded,
               ),
