@@ -17,7 +17,6 @@ import 'config/translations/localization_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Optimize system UI overlay style early
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -27,7 +26,6 @@ Future<void> main() async {
     ),
   );
 
-  // Initialize Firebase first (required for some storage operations)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -36,12 +34,10 @@ Future<void> main() async {
     log('Firebase initialization error: $e');
   }
 
-  // Initialize local storage after Firebase
   try {
     await LocalStorageMethods.init();
   } catch (e) {
     log('LocalStorage initialization error: $e');
-    // Continue without local storage if it fails
   }
 
   await setUpLocator();
