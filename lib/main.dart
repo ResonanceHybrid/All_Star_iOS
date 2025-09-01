@@ -162,7 +162,6 @@ class _MyAppState extends State<MyApp> {
     final schoolDetails = LocalStorageMethods.getSchoolDetails();
     final userDetails = LocalStorageMethods.getUserDetails();
 
-    // Check school details
     if (schoolDetails == null || schoolDetails["logo"] == "") {
       return AppPages.selectSchool;
     }
