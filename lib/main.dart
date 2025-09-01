@@ -139,16 +139,13 @@ class _MyAppState extends State<MyApp> {
             );
           },
 
-          // Simplified route logic for better performance
           initialRoute: _getInitialRoute(),
           getPages: AppPages.routes,
           locale: LocalStorageMethods.getCurrentLocal(),
           translations: LocalizationService.getInstance(),
 
-          // Add these to improve navigation performance
           enableLog: false,
           logWriterCallback: (text, {isError = false}) {
-            // Only log errors in production
             if (isError) {
               log(text);
             }
