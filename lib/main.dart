@@ -64,22 +64,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  //AppUpdateInfo? _updateInfo;
-
-  // Future<void> checkForUpdate() async {
-  //   try {
-  //     final info = await InAppUpdate.checkForUpdate();
-  //     _updateInfo = info;
-
-  //     if (_updateInfo?.updateAvailability ==
-  //         UpdateAvailability.updateAvailable) {
-  //       await InAppUpdate.performImmediateUpdate();
-  //     }
-  //   } catch (e) {
-  //     log('App update error: $e');
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
@@ -89,13 +73,6 @@ class _MyAppState extends State<MyApp> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-
-    // Check for updates after a brief delay to avoid interference with app startup
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   Future.delayed(const Duration(milliseconds: 500), () {
-    //     checkForUpdate();
-    //   });
-    // });
   }
 
   @override
