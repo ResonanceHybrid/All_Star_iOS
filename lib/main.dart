@@ -172,7 +172,6 @@ class _MyAppState extends State<MyApp> {
       return AppPages.login;
     }
 
-    // Route based on user role
     final userRole = userDetails["data"]?["role"];
     switch (userRole) {
       case "student":
