@@ -167,7 +167,6 @@ class _MyAppState extends State<MyApp> {
       return AppPages.selectSchool;
     }
 
-    // Check user details
     if (userDetails == null || userDetails["token"] == "") {
       return AppPages.login;
     }
