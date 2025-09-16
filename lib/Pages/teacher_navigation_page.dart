@@ -93,51 +93,51 @@ class _TeacherNavigationPageState extends State<TeacherNavigationPage> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  flex: 1,
+                  //flex: 1,
                   child: bottomNavBarItems(0, 'Home', kHomeAltNavIcon),
                 ),
                 Expanded(
-                  flex: 3,
+                  // flex: 3,
                   child: bottomNavBarItems(1, 'Calender', kCalenderNavIcon),
                 ),
                 Expanded(
-                  flex: 3,
+                  // flex: 3,
                   child: bottomNavBarItems(2, 'HomeWork', kHomeworkIcon),
                 ),
                 Expanded(
-                  flex: 1,
+                  // flex: 1,
                   child: bottomNavBarItems(3, 'Notice', kNoticeNavIcon),
                 ),
               ],
             ),
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: SizedBox(
-          height: 68,
-          width: 68,
-          child: FloatingActionButton(
-            shape: const StadiumBorder(),
-            onPressed: () {
-              setState(() {
-                _selectedIndex = 4;
-              });
-            },
-            tooltip: 'Qr',
-            elevation: 0,
-            highlightElevation: 0,
-            backgroundColor: AppColors.kGreyColor,
-            child: Image.asset(
-              kQrIcon,
-              color: LightThemeColors.primaryColor,
-              height: 30.sp,
-              width: 30.sp,
-            ),
-          ),
-        ),
+        //floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        // floatingActionButton: SizedBox(
+        //   height: 68,
+        //   width: 68,
+        //   child: FloatingActionButton(
+        //     shape: const StadiumBorder(),
+        //     onPressed: () {
+        //       setState(() {
+        //         _selectedIndex = 4;
+        //       });
+        //     },
+        //     tooltip: 'Qr',
+        //     elevation: 0,
+        //     highlightElevation: 0,
+        //     backgroundColor: AppColors.kGreyColor,
+        //     child: Image.asset(
+        //       kQrIcon,
+        //       color: LightThemeColors.primaryColor,
+        //       height: 30.sp,
+        //       width: 30.sp,
+        //     ),
+        //   ),
+        // ),
       ),
     );
   }
