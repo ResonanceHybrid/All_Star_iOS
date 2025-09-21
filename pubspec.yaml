@@ -10,7 +10,6 @@ environment:
 
 dependencies:
   cached_network_image: ^3.4.1
-  #in_app_update: ^4.2.2
   cupertino_icons:
   fluttertoast: ^8.2.2
   dio: ^5.1.2
