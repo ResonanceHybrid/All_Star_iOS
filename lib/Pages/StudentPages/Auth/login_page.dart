@@ -170,9 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 height: responsiveHeight * 0.5,
-                width: MediaQuery.of(context)
-                    .size
-                    .width, // set the height of the container
+                width: MediaQuery.of(context).size.width,
               ),
             ),
             ListView(
